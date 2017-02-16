@@ -1,35 +1,32 @@
 package com.vi34;
 
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.TypeSpec;
+import lombok.Getter;
+import lombok.Setter;
 
-import javax.annotation.processing.Filer;
-import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
-import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by vi34 on 22/12/2016.
  */
+@Getter
+@Setter
 public class SerializationUnit {
 
-    public static final String SUFFIX = "Serializator";
-    private String qualifiedName;
+    String simpleName;
+    TypeElement element;
 
     SerializationUnit(TypeElement element) {
-        qualifiedName = element.getQualifiedName().toString();
+        this.element = element;
+        simpleName = element.getSimpleName().toString();
+        inspect();
     }
 
-    void generateSerializator(Elements elementUtils, Filer filer) throws IOException {
-        TypeSpec helloWorld = TypeSpec.classBuilder(qualifiedName + SUFFIX)
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .build();
+    void inspect() {
+        List<? extends Element> elements = element.getEnclosedElements();
+        for (Element element : elements) {
 
-        JavaFile javaFile = JavaFile.builder("com.vi34", helloWorld)
-                .build();
-
-        javaFile.writeTo(filer);
-
+        }
     }
 }

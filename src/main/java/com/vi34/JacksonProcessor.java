@@ -47,7 +47,8 @@ public class JacksonProcessor extends AbstractProcessor {
             try {
                 TypeElement typeElement = (TypeElement) annotatedElement;
                 SerializationUnit serializationUnit = new SerializationUnit(typeElement);
-                serializationUnit.generateSerializator(elementUtils, filer);
+                SerializerGenerator generator = new SerializerGenerator(elementUtils, filer);
+                generator.generateSerializer(serializationUnit);
             } catch (IOException e) {
                 error(null, e.getMessage());
             }
