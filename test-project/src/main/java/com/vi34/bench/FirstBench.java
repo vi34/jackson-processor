@@ -42,8 +42,8 @@ public class FirstBench {
         SimpleModule module = new SimpleModule();
         module.addSerializer(Pojo.class, new PojoSerializer());
         mapper.registerModule(module);
-        pojo = new Pojo(12345, "pojo", Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8 ,9 ,0));
-        pojo2 = new Pojo2(12345, "pojo2", Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8 ,9 ,0));
+        pojo = new Pojo(12345, "pojo", Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8 ,9 ,0), false, 3.1, 999, 'a');
+        pojo2 = new Pojo2(12345, "pojo2", Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8 ,9 ,0), false, 3.1, 999, 'a');
     }
 
     @Benchmark

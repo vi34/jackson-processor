@@ -21,13 +21,15 @@ public class ClassDefinition {
     String packageName;
     TypeElement element;
     List<VariableElement> fields;
+    //save getters for fields
+
 
     ClassDefinition(TypeElement element) {
         this.element = element;
         simpleName = element.getSimpleName().toString();
         String qualified = element.getQualifiedName().toString();
         int dot = qualified.lastIndexOf(".");
-        packageName = qualified.substring(dot + 1);
+        packageName = dot > 0 ? qualified.substring(dot + 1) : "";
         fields = new ArrayList<>();
     }
 

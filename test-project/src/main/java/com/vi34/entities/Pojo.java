@@ -14,7 +14,11 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 public class Pojo {
-    @JsonProperty("c") int a;
-    @JsonProperty("S") String s;
-    @JsonProperty("Flist") List<Integer> list;
+    @JsonProperty("i1") int i1;
+    @JsonProperty("Str") String str;
+    @JsonProperty("Ilist") List<Integer> list;
+    boolean bool;
+    Double aDouble;
+    private int prInt;
+    Character aChar;
 }

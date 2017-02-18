@@ -19,4 +19,8 @@ public class Pojo2 {
     @JsonProperty("c") int a;
     @JsonProperty("S") String s;
     @JsonProperty("Flist") List<Integer> list;
+    boolean bool;
+    Double aDouble;
+    private int prInt;
+    char aChar;
 }

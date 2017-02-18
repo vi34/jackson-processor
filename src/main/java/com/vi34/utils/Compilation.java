@@ -27,11 +27,12 @@ public class Compilation {
                     diagnostic.getSource().getName() );
         }
 
+        manager.close();
     }
 
     public static void main(String[] args) {
         try {
-            compile(Paths.get("./src/test/java/Pojo2.java").toFile());
+            compile(Paths.get("./test-project/src/main/java/com/vi34/entities/Pojo2.java").toFile());
         } catch (IOException e) {
             e.printStackTrace();
         }

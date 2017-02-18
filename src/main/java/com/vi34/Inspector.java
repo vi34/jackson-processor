@@ -1,6 +1,7 @@
 package com.vi34;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
@@ -23,7 +24,7 @@ public class Inspector {
         List<? extends Element> members = elementUtils.getAllMembers(element);
         ClassDefinition definition = new ClassDefinition(element);
         for (Element member: members) {
-            if (member instanceof VariableElement) {
+            if (member.getKind().equals(ElementKind.FIELD)) {
                 definition.fields.add((VariableElement) member);
             }
         }
