@@ -1,4 +1,4 @@
-package com.vi34.entities;
+package com.vi34;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vi34.annotations.Json;

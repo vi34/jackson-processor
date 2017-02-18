@@ -1,7 +1,6 @@
 package com.vi34;
 
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
@@ -24,12 +23,26 @@ public class SerializerGenerator {
         this.elementUtils = elementUtils;
     }
 
-    void generateSerializer(SerializationUnit unit) throws IOException {
-        TypeSpec helloWorld = TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+    void generateSerializer(ClassDefinition unit) throws IOException {
+        MethodSpec serialize = MethodSpec.methodBuilder("serialize")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                //.addParameter()
+                .returns(void.class)
+                .addException(IOException.class)
                 .build();
 
-        JavaFile javaFile = JavaFile.builder("com.vi34", helloWorld)
+
+        ClassName stdSerializer = ClassName.get("com.fasterxml.jackson.databind.ser.std","StdSerializer");
+        ClassName unitClass = ClassName.get(unit.packageName, unit.simpleName);
+
+        TypeSpec serializer = TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .superclass(ParameterizedTypeName.get(stdSerializer, unitClass))
+                .addMethod(serialize)
+                .build();
+
+        JavaFile javaFile = JavaFile.builder("com.vi34", serializer)
                 .build();
 
         javaFile.writeTo(filer);

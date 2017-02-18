@@ -12,6 +12,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -46,9 +47,12 @@ public class JacksonProcessor extends AbstractProcessor {
             }
             try {
                 TypeElement typeElement = (TypeElement) annotatedElement;
-                SerializationUnit serializationUnit = new SerializationUnit(typeElement);
+                Inspector inspector = new Inspector(elementUtils);
+                List<ClassDefinition> classDefinitions = inspector.inspect(typeElement);
                 SerializerGenerator generator = new SerializerGenerator(elementUtils, filer);
-                generator.generateSerializer(serializationUnit);
+                for (ClassDefinition def : classDefinitions) {
+                    generator.generateSerializer(def);
+                }
             } catch (IOException e) {
                 error(null, e.getMessage());
             }

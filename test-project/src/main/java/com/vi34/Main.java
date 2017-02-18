@@ -20,7 +20,6 @@ import java.util.Arrays;
  * Created by vi34 on 13/08/16.
  */
 
-@Json
 public class Main {
 
     private static File testFile = new File("test.json");
