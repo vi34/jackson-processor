@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.io.Files;
-import com.vi34.annotations.Json;
 import com.vi34.entities.Pojo;
-import com.vi34.entities.Pojo2;
+import com.vi34.entities.Complex;
+import com.vi34.serializers.PojoSerializer;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -35,15 +35,15 @@ public class Main {
         module.addSerializer(Pojo.class, new PojoSerializer());
         mapper.registerModule(module);
 
-
+/*
         Pojo pojo = new Pojo(1, "test", Arrays.asList(3, 4 ,5 ,1), false, 3.1, 999, 'a');
         mapper.writeValue(System.out, pojo);
 
-        Pojo2 pojo2 = new Pojo2(2, "test2", Arrays.asList(3, 4, 5, 1), false, 3.1, 999, 'a');
-        mapper.writeValue(System.out, pojo2);
+        Complex complex = new Complex(2, "test2", Arrays.asList(3, 4, 5, 1), false, 3.1, 999, 'a');
+        mapper.writeValue(System.out, complex);
 
         mapper.writeValue(writer, pojo);
-        mapper.writeValue(writer, pojo2);
+        mapper.writeValue(writer, complex);*/
 
         //Pojo pojo2 = mapper.readValue(Files.newReader(testFile, Charset.defaultCharset()), Pojo.class);
         //System.out.println(pojo2);

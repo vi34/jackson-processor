@@ -3,7 +3,10 @@ package com.vi34.entities;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by vi34 on 13/08/16.
@@ -21,4 +24,15 @@ public class Pojo {
     Double aDouble;
     private int prInt;
     Character aChar;
+
+    static Random random = new Random();
+
+    public static Pojo makePojo() {
+        List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < 10; ++i) {
+            list.add(random.nextInt());
+        }
+        return new Pojo(random.nextInt(), "pojo", list,
+                random.nextBoolean(), random.nextDouble(), random.nextInt(), 'a');
+    }
 }

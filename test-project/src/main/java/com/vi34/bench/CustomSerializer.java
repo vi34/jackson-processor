@@ -5,9 +5,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.vi34.PojoSerializer;
+import com.vi34.serializers.ComplexSerializer;
+import com.vi34.serializers.PojoSerializer;
 import com.vi34.entities.Pojo;
-import com.vi34.entities.Pojo2;
+import com.vi34.entities.Complex;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -15,24 +16,22 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Created by vi34 on 16/02/2017.
  */
 @State(Scope.Thread)
-public class FirstBench {
+public class CustomSerializer {
 
     ObjectMapper mapper;
     MappingJsonFactory factory;
     Pojo pojo;
-    Pojo2 pojo2;
+    Complex complex;
 
-    public FirstBench() {
+    public CustomSerializer() {
         factory = new MappingJsonFactory();
         factory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-
 
     }
 
@@ -41,30 +40,33 @@ public class FirstBench {
         mapper = new ObjectMapper(factory);
         SimpleModule module = new SimpleModule();
         module.addSerializer(Pojo.class, new PojoSerializer());
+        module.addSerializer(Complex.class, new ComplexSerializer());
         mapper.registerModule(module);
-        pojo = new Pojo(12345, "pojo", Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8 ,9 ,0), false, 3.1, 999, 'a');
-        pojo2 = new Pojo2(12345, "pojo2", Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8 ,9 ,0), false, 3.1, 999, 'a');
+        pojo = Pojo.makePojo();
+        complex = Complex.makeComplex(7);
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
+    @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     public String customSerializer() throws JsonProcessingException {
         return mapper.writeValueAsString(pojo);
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
+    @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
-    public String reflection() throws JsonProcessingException {
-        return mapper.writeValueAsString(pojo2);
+    public String complex() throws JsonProcessingException {
+        return mapper.writeValueAsString(complex);
     }
-
-
 
     public static void main(String[] args) throws RunnerException {
         Options options = new OptionsBuilder()
-                .include(FirstBench.class.getSimpleName())
+                .include(CustomSerializer.class.getSimpleName())
+                .include(ReflectionBench.class.getSimpleName())
+                .include(AfterBurner.class.getSimpleName())
+                .warmupIterations(5)
+                .output("profile.txt")
                 .forks(1)
                 .build();
 

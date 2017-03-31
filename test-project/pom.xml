@@ -10,7 +10,9 @@
 
     <properties>
         <jmh.version>1.17.4</jmh.version>
+        <jackson.version>2.8.5</jackson.version>
     </properties>
+
 
     <build>
         <plugins>
@@ -31,7 +33,7 @@
                     <arguments>
                         <argument>-classpath</argument>
                         <classpath />
-                        <argument>com.vi34.bench.FirstBench</argument>
+                        <argument>com.vi34.bench.CustomSerializer</argument>
                     </arguments>
                 </configuration>
             </plugin>
@@ -43,17 +45,17 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.6.3</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.6.3</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.6.3</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.vi34.</groupId>
@@ -70,6 +72,11 @@
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>${jmh.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-afterburner</artifactId>
+            <version>2.7.1</version>
         </dependency>
         <!--<dependency>
             <groupId>org.projectlombok</groupId>

@@ -1,4 +1,4 @@
-package com.vi34;
+package com.vi34.serializers;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
