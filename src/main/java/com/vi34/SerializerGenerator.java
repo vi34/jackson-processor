@@ -3,6 +3,8 @@ package com.vi34;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.squareup.javapoet.*;
+import com.vi34.beans.ClassDefinition;
+import com.vi34.beans.Property;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
@@ -29,25 +31,44 @@ public class SerializerGenerator {
 
     void generateSerializer(ClassDefinition unit) throws IOException {
         ClassName stdSerializer = ClassName.get("com.fasterxml.jackson.databind.ser.std","StdSerializer");
-        ClassName unitClass = ClassName.get(unit.packageName, unit.simpleName);
+        ClassName beanClass = ClassName.get(unit.getPackageName(), unit.getSimpleName());
 
         MethodSpec.Builder serialize = MethodSpec.methodBuilder("serialize")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(unitClass, "value")
+                .addParameter(beanClass, "value")
                 .addParameter(JsonGenerator.class, "gen")
                 .addParameter(SerializerProvider.class, "provider")
                 .returns(void.class)
                 .addException(IOException.class)
                 .addStatement("gen.writeStartObject()");
 
-        for (VariableElement field : unit.fields) {
-            addField(field, serialize);
+
+        ParameterizedTypeName classBean = ParameterizedTypeName.get(ClassName.get(Class.class), beanClass);
+        MethodSpec constr1 = MethodSpec.constructorBuilder()
+                .addParameter(ParameterSpec.builder(classBean, "t").build())
+                .addStatement("super(t)")
+                .addModifiers(Modifier.PROTECTED)
+                .build();
+
+        MethodSpec constrDef = MethodSpec.constructorBuilder()
+                .addStatement("this(null)")
+                .addModifiers(Modifier.PUBLIC)
+                .build();
+
+
+
+        for (Property property : unit.getProps()) {
+            addProp(property, serialize);
         }
 
+
+        serialize.addStatement("gen.writeEndObject()");
         TypeSpec serializer = TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .superclass(ParameterizedTypeName.get(stdSerializer, unitClass))
+                .superclass(ParameterizedTypeName.get(stdSerializer, beanClass))
+                .addMethod(constr1)
+                .addMethod(constrDef)
                 .addMethod(serialize.build())
                 .build();
 
@@ -58,25 +79,17 @@ public class SerializerGenerator {
 
     }
 
-    void addField(VariableElement field, MethodSpec.Builder serialize) {
-        String name = field.getSimpleName().toString();
-        TypeKind kind = field.asType().getKind();
-        String genMethod;
-        switch (kind) {
-            case BOOLEAN: genMethod = "writeBooleanField"; break;
-            case DOUBLE: case INT: genMethod = "writeNumberField"; break;
-            default: //throw exception
-                genMethod = null;
-        }
+
+    void addProp(Property property, MethodSpec.Builder serialize) {
+        String name = property.getName();
+        String genMethod = property.genMethod();
         if (genMethod != null) {
-            serialize.addStatement("gen.$L($S, value.$L)",genMethod, name, getM(name));
+            serialize.addStatement("gen.$L($S, value.$L)", genMethod, name, property.accessorString());
         }
     }
 
 
     //temporary method
-    private String getM(String name) {
-        return "get" + Character.isUpperCase(name.charAt(0)) + name.substring(1) + "()";
-    }
+
 
 }

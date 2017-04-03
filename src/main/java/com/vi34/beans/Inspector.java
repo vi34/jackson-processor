@@ -1,9 +1,8 @@
-package com.vi34;
+package com.vi34.beans;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import com.vi34.beans.ClassDefinition;
+
+import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +17,18 @@ public class Inspector {
         this.elementUtils = elementUtils;
     }
 
+    //Map<String, >
 
-    List<ClassDefinition> inspect(TypeElement element) {
+    public List<ClassDefinition> inspect(TypeElement element) {
         List<ClassDefinition> result = new ArrayList<>();
         List<? extends Element> members = elementUtils.getAllMembers(element);
         ClassDefinition definition = new ClassDefinition(element);
         for (Element member: members) {
             if (member.getKind().equals(ElementKind.FIELD)) {
-                definition.fields.add((VariableElement) member);
+                if (!member.getModifiers().contains(Modifier.PRIVATE)) {
+                    Property property = new Property((VariableElement) member);
+                    definition.getProps().add(property);
+                }
             }
         }
         result.add(definition);

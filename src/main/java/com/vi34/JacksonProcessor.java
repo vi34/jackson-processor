@@ -2,6 +2,8 @@ package com.vi34;
 
 import com.google.auto.service.AutoService;
 import com.vi34.annotations.Json;
+import com.vi34.beans.ClassDefinition;
+import com.vi34.beans.Inspector;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
