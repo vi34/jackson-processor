@@ -28,6 +28,7 @@ import java.util.Set;
 })
 public class JacksonProcessor extends AbstractProcessor {
 
+    private static final boolean DEBUG = true;
     private Types typeUtils;
     private Elements elementUtils;
     private Filer filer;
@@ -69,13 +70,15 @@ public class JacksonProcessor extends AbstractProcessor {
                     } catch (Exception e1) {
                         messager.printMessage(Diagnostic.Kind.WARNING,
                                 "Error during generation for " + e.getValue().getSimpleName());
+                        if (DEBUG) {
+                            e1.printStackTrace();
+                        }
                         error(null, e1.getMessage());
                     }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            //messager.printMessage(Diagnostic.Kind.ERROR);
             error(null, e.getMessage());
         }
         return true;

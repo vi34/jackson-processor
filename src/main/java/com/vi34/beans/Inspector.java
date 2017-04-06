@@ -15,8 +15,6 @@ public class Inspector {
         this.elementUtils = elementUtils;
     }
 
-    //Map<String, >
-
     public BeanDefinition inspect(TypeElement element) {
         List<? extends Element> members = elementUtils.getAllMembers(element);
         BeanDefinition definition = new BeanDefinition(element);
@@ -27,6 +25,7 @@ public class Inspector {
                     definition.getProps().add(property);
                 }
             }
+            //TODO add getters/setters
         }
         return definition;
     }

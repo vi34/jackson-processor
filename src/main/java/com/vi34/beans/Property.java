@@ -16,7 +16,7 @@ import javax.lang.model.type.TypeMirror;
 public class Property {
 
     boolean isField;
-    boolean isDeclared;
+    boolean isDeclared; //Todo handle arrays and collections
     String name;
     String typeName;
     String genMethod;
@@ -24,9 +24,13 @@ public class Property {
     Property(VariableElement element) {
         isField = true;
         name = element.getSimpleName().toString();
-        isDeclared = !element.asType().getKind().isPrimitive(); // TODO: &&  not string
+        isDeclared = computeDeclared(element); // TODO: &&  not string
         typeName = element.asType().toString();
         genMethod(element.asType());
+    }
+
+    private boolean computeDeclared(VariableElement element) {
+        return !element.asType().getKind().isPrimitive() && !element.asType().toString().equals("java.lang.String");
     }
 
     public String accessorString() {
@@ -38,8 +42,11 @@ public class Property {
             case BOOLEAN: genMethod = "writeBoolean"; break;
             case DOUBLE: case INT: genMethod = "writeNumber"; break;
             default: //throw exception
-
-                genMethod = null;
+                if (type.toString().equals("java.lang.String")) {
+                    genMethod = "writeString";
+                } else {
+                    genMethod = null;
+                }
         }
     }
 
