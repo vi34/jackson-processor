@@ -35,7 +35,7 @@ public class Main {
         SimpleModule module = new SimpleModule();
 //        module.addSerializer(Pojo.class, new PojoSerializer());
         //mapper.registerModule(module);
-        mapper.registerModule(new AfterburnerModule());
+        //mapper.registerModule(new AfterburnerModule());
 
         Pojo pojo = new Pojo(1, "test", Arrays.asList(3, 4 ,5 ,1), false, 3.1, 999, 'a');
         mapper.writeValue(System.out, pojo);

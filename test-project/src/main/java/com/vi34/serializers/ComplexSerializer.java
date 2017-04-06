@@ -42,7 +42,7 @@ public class ComplexSerializer extends StdSerializer<Complex> {
             gen.writeEndArray();
             gen.writeBooleanField("bool", v.isBool());
             gen.writeNumberField("prInt", v.getPrInt());
-            gen.writeStringField("aChar", v.getAChar().toString());
+            gen.writeStringField("aChar", ""+v.getAChar());
             gen.writeNumberField("aDouble", v.getADouble());
             gen.writeEndObject();
         }

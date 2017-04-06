@@ -56,7 +56,7 @@ public class JacksonProcessor extends AbstractProcessor {
                     return true;
                 }
                 TypeElement typeElement = (TypeElement) annotatedElement;
-                Inspector inspector = new Inspector(elementUtils);
+                Inspector inspector = new Inspector(elementUtils, typeUtils);
                 BeanDefinition beanDefinition= inspector.inspect(typeElement);
                 beansInfo.put(beanDefinition.getTypeName(), beanDefinition);
             }

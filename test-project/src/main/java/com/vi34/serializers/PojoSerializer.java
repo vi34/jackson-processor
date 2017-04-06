@@ -32,7 +32,7 @@ public class PojoSerializer extends StdSerializer<Pojo> {
         gen.writeEndArray();
         gen.writeBooleanField("bool", value.isBool());
         gen.writeNumberField("prInt", value.getPrInt());
-        gen.writeStringField("aChar", value.getAChar().toString());
+        gen.writeStringField("aChar", value.getAChar() + "");
         gen.writeNumberField("aDouble", value.getADouble());
         gen.writeEndObject();
     }

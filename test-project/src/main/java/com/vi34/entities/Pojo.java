@@ -23,7 +23,7 @@ public class Pojo {
     boolean bool;
     Double aDouble;
     private int prInt;
-    Character aChar;
+    char aChar;
 
     static Random random = new Random();
 

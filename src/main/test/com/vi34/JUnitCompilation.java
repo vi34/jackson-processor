@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.vi34.raw.Complex;
-import com.vi34.raw.Pojo;
-import com.vi34.raw.WithString;
+import com.vi34.raw.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -68,5 +66,17 @@ public class JUnitCompilation {
         mapper.writeValue(new File("tmp"), complex);
         Complex read = mapper.readValue(new File("tmp"), Complex.class);
         Assert.assertEquals(complex, read);
+    }
+
+    @Test
+    public void boxing() throws IOException {
+        Assert.assertTrue(load(Boxing.class, mapper));
+
+        Boxing val = new Boxing(1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true,
+                1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true);
+
+        mapper.writeValue(new File("tmp"), val);
+        Boxing read = mapper.readValue(new File("tmp"), Boxing.class);
+        Assert.assertEquals(val, read);
     }
 }

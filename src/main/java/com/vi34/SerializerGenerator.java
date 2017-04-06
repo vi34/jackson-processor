@@ -9,7 +9,6 @@ import com.vi34.beans.SerializeInfo;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import java.io.IOException;
 import java.util.Map;
@@ -33,7 +32,7 @@ public class SerializerGenerator {
         this.beansInfo = beansInfo;
     }
 
-    SerializeInfo generateSerializer(BeanDefinition unit) throws IOException {
+    SerializeInfo generateSerializer(BeanDefinition unit) throws IOException, GenerationException {
         SerializeInfo currentSerializeInfo = new SerializeInfo(unit.getTypeName());
         ClassName stdSerializer = ClassName.get("com.fasterxml.jackson.databind.ser.std","StdSerializer");
         ClassName beanClass = ClassName.get(unit.getPackageName(), unit.getSimpleName());
@@ -88,7 +87,6 @@ public class SerializerGenerator {
         TypeSpec serializer = serializerBuilder.addMethod(serImpl).build();
 
 
-
         JavaFile javaFile = JavaFile.builder("com.vi34", serializer)
                 .build();
 
@@ -98,9 +96,36 @@ public class SerializerGenerator {
         return currentSerializeInfo;
     }
 
+    //TODO handle more types. Watch JsonGenerator._writeSimpleObject
+    private String genMethod(Property prop) throws GenerationException {
+        if (prop.isNumber()) {
+            return "writeNumber";
+        }
 
-    void addProp(Property property, MethodSpec.Builder serialize, TypeSpec.Builder serializerBuilder, SerializeInfo current) throws IOException {
-        if (property.isDeclared()) {
+        switch (prop.getTypeName()) {
+            case "boolean":case "java.lang.Boolean": return "writeBoolean";
+            case "char":case "java.lang.Character":case "java.lang.String": return "writeString";
+        }
+
+        throw new GenerationException("Couldn't find generator method for " + prop);
+    }
+
+    //TODO handle AtomicLong, BigDecimal, ...
+    private String accessorString(Property prop) {
+        String res = prop.isField() ? prop.getName() : prop.getter();
+
+        if (prop.getTypeName().equals("char") || prop.getTypeName().equals("java.lang.Character"))
+            res += " + \"\"";
+        return res;
+    }
+
+    // TODO handle nulls
+    void addProp(Property property, MethodSpec.Builder serialize, TypeSpec.Builder serializerBuilder, SerializeInfo current) throws IOException, GenerationException {
+        String name = property.getName();
+        serialize.addStatement("gen.writeFieldName($S)", name);  // TODO SerializedString
+        if (property.isSimple()) {
+            serialize.addStatement("gen.$L(value.$L)", genMethod(property), accessorString(property));
+        } else {
             SerializeInfo serInfo = processed.get(property.getTypeName());
             if (serInfo == null) {
                 BeanDefinition beanDef = beansInfo.get(property.getTypeName());
@@ -110,20 +135,12 @@ public class SerializerGenerator {
                     serInfo = generateSerializer(beanDef);
                 }
             }
-            serialize.addStatement("gen.writeFieldName($S)", property.getName());
-            serialize.addStatement("$L(value.$L, gen, provider)", serInfo.getSerializeMethod().name, property.accessorString());
+            serialize.addStatement("$L(value.$L, gen, provider)", serInfo.getSerializeMethod().name, accessorString(property));
             serializerBuilder.addMethod(serInfo.getSerializeMethod()); // TODO: handle methods duplication
             for (SerializeInfo propInfo : serInfo.getProps()) {
                 serializerBuilder.addMethod(propInfo.getSerializeMethod());
             }
             current.getProps().add(serInfo);
-        } else {
-            String name = property.getName();
-            String genMethod = property.getGenMethod();
-            if (genMethod != null) {
-                serialize.addStatement("gen.writeFieldName($S)", name);  // TODO SerializedString
-                serialize.addStatement("gen.$L(value.$L)", genMethod, property.accessorString());
-            }
         }
     }
 
