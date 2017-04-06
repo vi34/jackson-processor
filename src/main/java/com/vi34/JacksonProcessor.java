@@ -48,27 +48,35 @@ public class JacksonProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (Element annotatedElement: roundEnv.getElementsAnnotatedWith(Json.class)) {
-            if (annotatedElement.getKind() != ElementKind.CLASS) {
-                error(annotatedElement, "Only classes can be annotated with @%s", Json.class.getSimpleName());
-                return true;
+        try {
+            for (Element annotatedElement: roundEnv.getElementsAnnotatedWith(Json.class)) {
+                if (annotatedElement.getKind() != ElementKind.CLASS) {
+                    error(annotatedElement, "Only classes can be annotated with @%s", Json.class.getSimpleName());
+                    return true;
+                }
+                TypeElement typeElement = (TypeElement) annotatedElement;
+                Inspector inspector = new Inspector(elementUtils);
+                BeanDefinition beanDefinition= inspector.inspect(typeElement);
+                beansInfo.put(beanDefinition.getTypeName(), beanDefinition);
             }
-            TypeElement typeElement = (TypeElement) annotatedElement;
-            Inspector inspector = new Inspector(elementUtils);
-            BeanDefinition beanDefinition= inspector.inspect(typeElement);
-            beansInfo.put(beanDefinition.getTypeName(), beanDefinition);
-        }
-        if (roundEnv.processingOver()) {
-            SerializerGenerator generator = new SerializerGenerator(elementUtils, filer, processed, beansInfo);
-            for (Map.Entry<String, BeanDefinition> e : beansInfo.entrySet()) {
-                try {
-                    if (!processed.containsKey(e.getKey())) {
-                        generator.generateSerializer(e.getValue());
+            if (roundEnv.processingOver()) {
+                SerializerGenerator generator = new SerializerGenerator(elementUtils, filer, processed, beansInfo);
+                for (Map.Entry<String, BeanDefinition> e : beansInfo.entrySet()) {
+                    try {
+                        if (!processed.containsKey(e.getKey())) {
+                            generator.generateSerializer(e.getValue());
+                        }
+                    } catch (Exception e1) {
+                        messager.printMessage(Diagnostic.Kind.WARNING,
+                                "Error during generation for " + e.getValue().getSimpleName());
+                        error(null, e1.getMessage());
                     }
-                } catch (IOException e1) {
-                    error(null, e1.getMessage());
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            //messager.printMessage(Diagnostic.Kind.ERROR);
+            error(null, e.getMessage());
         }
         return true;
     }
@@ -79,10 +87,12 @@ public class JacksonProcessor extends AbstractProcessor {
     }
 
     private void error(Element e, String msg, Object... args) {
-        messager.printMessage(
-                Diagnostic.Kind.ERROR,
-                String.format(msg, args),
-                e);
+        if (msg != null) {
+            messager.printMessage(
+                    Diagnostic.Kind.WARNING,
+                    String.format(msg, args),
+                    e);
+        }
     }
 
 }

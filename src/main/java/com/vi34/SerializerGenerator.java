@@ -121,8 +121,8 @@ public class SerializerGenerator {
             String name = property.getName();
             String genMethod = property.getGenMethod();
             if (genMethod != null) {
-                // TODO change to pair of writeFieldName(SerializedString), writeValue
-                serialize.addStatement("gen.$L($S, value.$L)", genMethod, name, property.accessorString());
+                serialize.addStatement("gen.writeFieldName($S)", name);  // TODO SerializedString
+                serialize.addStatement("gen.$L(value.$L)", genMethod, property.accessorString());
             }
         }
     }

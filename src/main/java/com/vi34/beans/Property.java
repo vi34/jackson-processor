@@ -35,9 +35,10 @@ public class Property {
 
     public void genMethod(TypeMirror type) {
         switch (type.getKind()) {
-            case BOOLEAN: genMethod = "writeBooleanField"; break;
-            case DOUBLE: case INT: genMethod = "writeNumberField"; break;
+            case BOOLEAN: genMethod = "writeBoolean"; break;
+            case DOUBLE: case INT: genMethod = "writeNumber"; break;
             default: //throw exception
+
                 genMethod = null;
         }
     }
