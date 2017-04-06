@@ -1,6 +1,7 @@
 package com.vi34.beans;
 
 import javax.lang.model.element.*;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -36,27 +37,43 @@ public class Inspector {
 
     private void processField(BeanDefinition definition, VariableElement member) {
         if (!member.getModifiers().contains(Modifier.PRIVATE)) {
-            Property property = new Property(member);
-            property.setField(true);
-            property.setNumber(isNumber(member));
-            property.setSimple(computeSimple(member, property));
-            definition.getProps().add(property);
+            TypeMirror type = member.asType();
+            if (type.getKind().equals(ARRAY)) {// TODO add collections
+                type = ((ArrayType) type).getComponentType();
+                ContainerProp property = new ContainerProp(member);
+                property.setField(true);
+                Property propertyEl = new Property(type);
+                fillWithType(type, propertyEl);
+                property.elem = propertyEl;
+                propertyEl.setAccessor(""+propertyEl.getName().toLowerCase().charAt(0));
+                definition.getProps().add(property);
+            } else {
+                Property property = new Property(member);
+                property.setField(true);
+                fillWithType(type, property);
+                definition.getProps().add(property);
+            }
         }
     }
 
-    private boolean computeSimple(VariableElement element, Property prop) {
-        return element.asType().getKind().isPrimitive() || prop.isNumber()
-                || prop.getTypeName().equals("java.lang.String")
-                || prop.getTypeName().equals("java.lang.Character")
-                || prop.getTypeName().equals("java.lang.Boolean");
+    private void fillWithType(TypeMirror type, Property property) {
+        property.setNumber(isNumber(type));
+        property.setSimple(computeSimple(type));
     }
 
-    private boolean isNumber(VariableElement element) {
-        List<? extends TypeMirror> supertypes = typeUtils.directSupertypes(element.asType());
+    private boolean computeSimple(TypeMirror type) {
+        return type.getKind().isPrimitive() || isNumber(type)
+                || type.toString().equals("java.lang.String")
+                || type.toString().equals("java.lang.Character")
+                || type.toString().equals("java.lang.Boolean");
+    }
+
+    private boolean isNumber(TypeMirror type) {
+        List<? extends TypeMirror> supertypes = typeUtils.directSupertypes(type);
         if (supertypes.size() > 0 && supertypes.get(0).toString().equals("java.lang.Number"))
             return true;
 
-        TypeKind kind = element.asType().getKind();
+        TypeKind kind = type.getKind();
         return kind == INT || kind == LONG || kind == SHORT || kind == BYTE || kind == DOUBLE || kind == FLOAT;
 
     }

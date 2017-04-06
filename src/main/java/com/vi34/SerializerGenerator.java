@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.squareup.javapoet.*;
 import com.vi34.beans.BeanDefinition;
+import com.vi34.beans.ContainerProp;
 import com.vi34.beans.Property;
 import com.vi34.beans.SerializeInfo;
 
@@ -78,7 +79,7 @@ public class SerializerGenerator {
                 .addMethod(serialize);
 
         for (Property property : unit.getProps()) {
-            addProp(property, serializeImpl, serializerBuilder, currentSerializeInfo);
+            addProp(property, serializeImpl, serializerBuilder, currentSerializeInfo, true);
         }
 
 
@@ -112,7 +113,9 @@ public class SerializerGenerator {
 
     //TODO handle AtomicLong, BigDecimal, ...
     private String accessorString(Property prop) {
-        String res = prop.isField() ? prop.getName() : prop.getter();
+        if (prop.getAccessor() != null)
+            return prop.getAccessor();
+        String res = "value." + (prop.isField() ? prop.getName() : prop.getter());
 
         if (prop.getTypeName().equals("char") || prop.getTypeName().equals("java.lang.Character"))
             res += " + \"\"";
@@ -120,22 +123,31 @@ public class SerializerGenerator {
     }
 
     // TODO handle nulls
-    void addProp(Property property, MethodSpec.Builder serialize, TypeSpec.Builder serializerBuilder, SerializeInfo current) throws IOException, GenerationException {
+    void addProp(Property property, MethodSpec.Builder serialize, TypeSpec.Builder serializerBuilder, SerializeInfo current, boolean named) throws IOException, GenerationException {
         String name = property.getName();
-        serialize.addStatement("gen.writeFieldName($S)", name);  // TODO SerializedString
-        if (property.isSimple()) {
-            serialize.addStatement("gen.$L(value.$L)", genMethod(property), accessorString(property));
+        if (named)
+            serialize.addStatement("gen.writeFieldName($S)", name);  // TODO SerializedString
+        if (property instanceof ContainerProp) {
+            serialize.addStatement("gen.writeStartArray()");
+            Property elem = ((ContainerProp) property).getElem();
+            serialize.beginControlFlow("for ($T $L : $L) ", elem.getTName()
+                    , elem.getName().toLowerCase().charAt(0), accessorString(property));
+            addProp(elem, serialize, serializerBuilder, current, false);
+            serialize.endControlFlow();
+            serialize.addStatement("gen.writeEndArray()");
+        } else if (property.isSimple()) {
+            serialize.addStatement("gen.$L($L)", genMethod(property), accessorString(property));
         } else {
             SerializeInfo serInfo = processed.get(property.getTypeName());
             if (serInfo == null) {
                 BeanDefinition beanDef = beansInfo.get(property.getTypeName());
                 if (beanDef == null) {
-                    // unknown class.
+                    // todo unknown class.
                 } else {
                     serInfo = generateSerializer(beanDef);
                 }
             }
-            serialize.addStatement("$L(value.$L, gen, provider)", serInfo.getSerializeMethod().name, accessorString(property));
+            serialize.addStatement("$L($L, gen, provider)", serInfo.getSerializeMethod().name, accessorString(property));
             serializerBuilder.addMethod(serInfo.getSerializeMethod()); // TODO: handle methods duplication
             for (SerializeInfo propInfo : serInfo.getProps()) {
                 serializerBuilder.addMethod(propInfo.getSerializeMethod());

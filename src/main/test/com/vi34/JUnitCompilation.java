@@ -79,4 +79,16 @@ public class JUnitCompilation {
         Boxing read = mapper.readValue(new File("tmp"), Boxing.class);
         Assert.assertEquals(val, read);
     }
+
+    @Test
+    public void array() throws IOException {
+        Assert.assertTrue(load(Array.class, mapper));
+        int[] ints = {1, 5, 10, 2, 9, 8, 1, 1, 3};
+        Pojo[] pojos = {new Pojo(1, 3.2), new Pojo(2, 5.2), new Pojo(3, 4.2)};
+        Array val = new Array(ints, pojos);
+
+        mapper.writeValue(new File("tmp"), val);
+        Array read = mapper.readValue(new File("tmp"), Array.class);
+        Assert.assertEquals(val, read);
+    }
 }
