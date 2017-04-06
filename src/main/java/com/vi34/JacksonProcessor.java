@@ -2,8 +2,9 @@ package com.vi34;
 
 import com.google.auto.service.AutoService;
 import com.vi34.annotations.Json;
-import com.vi34.beans.ClassDefinition;
+import com.vi34.beans.BeanDefinition;
 import com.vi34.beans.Inspector;
+import com.vi34.beans.SerializeInfo;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -14,7 +15,8 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -30,6 +32,8 @@ public class JacksonProcessor extends AbstractProcessor {
     private Elements elementUtils;
     private Filer filer;
     private Messager messager;
+    private Map<String, SerializeInfo> processed;
+    private Map<String, BeanDefinition> beansInfo;
 
     @Override
     public synchronized void init(ProcessingEnvironment env) {
@@ -38,6 +42,8 @@ public class JacksonProcessor extends AbstractProcessor {
         elementUtils = processingEnv.getElementUtils();
         filer = processingEnv.getFiler();
         messager = processingEnv.getMessager();
+        processed = new HashMap<>();
+        beansInfo = new HashMap<>();
     }
 
     @Override
@@ -47,16 +53,21 @@ public class JacksonProcessor extends AbstractProcessor {
                 error(annotatedElement, "Only classes can be annotated with @%s", Json.class.getSimpleName());
                 return true;
             }
-            try {
-                TypeElement typeElement = (TypeElement) annotatedElement;
-                Inspector inspector = new Inspector(elementUtils);
-                List<ClassDefinition> classDefinitions = inspector.inspect(typeElement);
-                SerializerGenerator generator = new SerializerGenerator(elementUtils, filer);
-                for (ClassDefinition def : classDefinitions) {
-                    generator.generateSerializer(def);
+            TypeElement typeElement = (TypeElement) annotatedElement;
+            Inspector inspector = new Inspector(elementUtils);
+            BeanDefinition beanDefinition= inspector.inspect(typeElement);
+            beansInfo.put(beanDefinition.getTypeName(), beanDefinition);
+        }
+        if (roundEnv.processingOver()) {
+            SerializerGenerator generator = new SerializerGenerator(elementUtils, filer, processed, beansInfo);
+            for (Map.Entry<String, BeanDefinition> e : beansInfo.entrySet()) {
+                try {
+                    if (!processed.containsKey(e.getKey())) {
+                        generator.generateSerializer(e.getValue());
+                    }
+                } catch (IOException e1) {
+                    error(null, e1.getMessage());
                 }
-            } catch (IOException e) {
-                error(null, e.getMessage());
             }
         }
         return true;

@@ -3,10 +3,8 @@ package com.vi34.beans;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import java.lang.reflect.Field;
+import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,22 +13,26 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class ClassDefinition {
+public class BeanDefinition {
 
     String simpleName;
     String packageName;
+    String typeName;
+    TypeMirror type;
     TypeElement element;
     List<Property> props;
     //save getters for fields
 
 
-    public ClassDefinition(TypeElement element) {
+    public BeanDefinition(TypeElement element) {
         this.element = element;
         simpleName = element.getSimpleName().toString();
         String qualified = element.getQualifiedName().toString();
         int dot = qualified.lastIndexOf(".");
         packageName = dot > 0 ? qualified.substring(0, dot) : "";
         props = new ArrayList<>();
+        type = element.asType();
+        typeName = type.toString();
     }
 
 

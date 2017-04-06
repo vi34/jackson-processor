@@ -1,7 +1,5 @@
 package com.vi34.beans;
 
-import com.vi34.beans.ClassDefinition;
-
 import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
@@ -19,10 +17,9 @@ public class Inspector {
 
     //Map<String, >
 
-    public List<ClassDefinition> inspect(TypeElement element) {
-        List<ClassDefinition> result = new ArrayList<>();
+    public BeanDefinition inspect(TypeElement element) {
         List<? extends Element> members = elementUtils.getAllMembers(element);
-        ClassDefinition definition = new ClassDefinition(element);
+        BeanDefinition definition = new BeanDefinition(element);
         for (Element member: members) {
             if (member.getKind().equals(ElementKind.FIELD)) {
                 if (!member.getModifiers().contains(Modifier.PRIVATE)) {
@@ -31,8 +28,7 @@ public class Inspector {
                 }
             }
         }
-        result.add(definition);
-        return result;
+        return definition;
     }
 
 }

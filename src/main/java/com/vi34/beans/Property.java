@@ -1,39 +1,45 @@
 package com.vi34.beans;
 
+import com.squareup.javapoet.MethodSpec;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * Created by vi34 on 03/04/2017.
  */
 @Getter
+@Setter
 public class Property {
 
     boolean isField;
+    boolean isDeclared;
     String name;
-    TypeKind kind;
+    String typeName;
+    String genMethod;
 
     Property(VariableElement element) {
         isField = true;
         name = element.getSimpleName().toString();
-        kind = element.asType().getKind();
+        isDeclared = !element.asType().getKind().isPrimitive(); // TODO: &&  not string
+        typeName = element.asType().toString();
+        genMethod(element.asType());
     }
 
     public String accessorString() {
         return isField ? name : getter(name);
     }
 
-    public String genMethod() {
-        String genMethod;
-        switch (kind) {
+    public void genMethod(TypeMirror type) {
+        switch (type.getKind()) {
             case BOOLEAN: genMethod = "writeBooleanField"; break;
             case DOUBLE: case INT: genMethod = "writeNumberField"; break;
             default: //throw exception
                 genMethod = null;
         }
-        return genMethod;
     }
 
     private String getter(String name) {
