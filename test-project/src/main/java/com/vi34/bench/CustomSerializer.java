@@ -50,8 +50,8 @@ public class CustomSerializer {
         SimpleModule module = new SimpleModule();
         module.addSerializer(Pojo.class, new PojoSerializer());
         module.addSerializer(Complex.class, new ComplexSerializer());
-        module.addSerializer(PrivatePojo.class, new PPojoSerializer());
-        module.addSerializer(PrivateComplex.class, new PComplexSerializer());
+        //module.addSerializer(PrivatePojo.class, new PPojoSerializer());
+        //module.addSerializer(PrivateComplex.class, new PComplexSerializer());
         module.addSerializer(MediaItem.class, new MediaItemSerializer());
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());

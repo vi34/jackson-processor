@@ -10,6 +10,7 @@
 
     <properties>
         <jackson.version>2.8.5</jackson.version>
+        <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
     </properties>
 
 
@@ -42,6 +43,13 @@
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
             <version>1.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jdk.tools</groupId>
+            <artifactId>jdk.tools</artifactId>
+            <version>jdk1.8.0</version>
+            <scope>system</scope>
+            <systemPath>${toolsjar}</systemPath>
         </dependency>
 
         <!--needed for testing-->

@@ -1,6 +1,7 @@
 package com.vi34.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.vi34.annotations.Json;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.Random;
 @AllArgsConstructor
 @ToString
 @NoArgsConstructor
+@Json
 public class Pojo {
     @JsonProperty("i1") int i1;
     @JsonProperty("Str") String str;

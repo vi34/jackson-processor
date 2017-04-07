@@ -82,9 +82,12 @@ public class SerializerGenerator {
             addProp(property, serializeImpl, serializerBuilder, currentSerializeInfo, true);
         }
 
-
         serializeImpl.addStatement("gen.writeEndObject()");
         MethodSpec serImpl = serializeImpl.build();
+
+        for (SerializeInfo propInfo : currentSerializeInfo.getProps().values()) {
+            serializerBuilder.addMethod(propInfo.getSerializeMethod());
+        }
         TypeSpec serializer = serializerBuilder.addMethod(serImpl).build();
 
 
@@ -148,11 +151,7 @@ public class SerializerGenerator {
                 }
             }
             serialize.addStatement("$L($L, gen, provider)", serInfo.getSerializeMethod().name, accessorString(property));
-            serializerBuilder.addMethod(serInfo.getSerializeMethod()); // TODO: handle methods duplication
-            for (SerializeInfo propInfo : serInfo.getProps()) {
-                serializerBuilder.addMethod(propInfo.getSerializeMethod());
-            }
-            current.getProps().add(serInfo);
+            current.getProps().putIfAbsent(serInfo.getTypeName(), serInfo);
         }
     }
 

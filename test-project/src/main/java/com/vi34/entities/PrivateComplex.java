@@ -15,7 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 @NoArgsConstructor
-@Json
 public class PrivateComplex {
     private String name;
     private int num;

@@ -23,18 +23,18 @@ public class PPojoSerializer extends StdSerializer<PrivatePojo> {
 
     @Override
     public void serialize(PrivatePojo value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        gen.writeStartObject();
-        gen.writeNumberField("i1", value.getI1());
-        gen.writeStringField("s", value.getStr());
-        gen.writeArrayFieldStart("Flist");
-        for (int v : value.getList()) {
-            gen.writeNumber(v);
-        }
-        gen.writeEndArray();
-        gen.writeBooleanField("bool", value.isBool());
-        gen.writeNumberField("prInt", value.getPrInt());
-        gen.writeStringField("aChar", value.getAChar().toString());
-        gen.writeNumberField("aDouble", value.getADouble());
-        gen.writeEndObject();
+//        gen.writeStartObject();
+//        gen.writeNumberField("i1", value.getI1());
+//        gen.writeStringField("s", value.getStr());
+//        gen.writeArrayFieldStart("Flist");
+//        for (int v : value.getList()) {
+//            gen.writeNumber(v);
+//        }
+//        gen.writeEndArray();
+//        gen.writeBooleanField("bool", value.isBool());
+//        gen.writeNumberField("prInt", value.getPrInt());
+//        gen.writeStringField("aChar", value.getAChar().toString());
+//        gen.writeNumberField("aDouble", value.getADouble());
+//        gen.writeEndObject();
     }
 }

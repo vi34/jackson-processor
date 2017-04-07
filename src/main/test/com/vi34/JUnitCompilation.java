@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import static com.vi34.Compilation.load;
 
@@ -85,7 +86,7 @@ public class JUnitCompilation {
         Assert.assertTrue(load(Array.class, mapper));
         int[] ints = {1, 5, 10, 2, 9, 8, 1, 1, 3};
         Pojo[] pojos = {new Pojo(1, 3.2), new Pojo(2, 5.2), new Pojo(3, 4.2)};
-        Array val = new Array(ints, pojos);
+        Array val = new Array(ints, pojos, Arrays.asList(1 ,2,5), Arrays.asList(new Pojo(5, 6)));
 
         mapper.writeValue(new File("tmp"), val);
         Array read = mapper.readValue(new File("tmp"), Array.class);

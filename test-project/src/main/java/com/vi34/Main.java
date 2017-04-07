@@ -9,6 +9,8 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.io.Files;
 import com.vi34.entities.Pojo;
 import com.vi34.entities.Complex;
+import com.vi34.entities.PrivatePojo;
+import com.vi34.entities.media.MediaItem;
 import com.vi34.serializers.PojoSerializer;
 
 import java.io.BufferedWriter;
@@ -37,13 +39,15 @@ public class Main {
         //mapper.registerModule(module);
         //mapper.registerModule(new AfterburnerModule());
 
-        Pojo pojo = new Pojo(1, "test", Arrays.asList(3, 4 ,5 ,1), false, 3.1, 999, 'a');
+        //Pojo pojo = new Pojo(1, "test", Arrays.asList(3, 4 ,5 ,1), false, 3.1, 999, 'a');
+        mapper.writeValue(System.out, MediaItem.buildItem());
+        PrivatePojo pojo = PrivatePojo.makePrivatePojo();
         mapper.writeValue(System.out, pojo);
 
         mapper.writeValue(writer, pojo);
 
-        //Pojo pojo2 = mapper.readValue(Files.newReader(testFile, Charset.defaultCharset()), Pojo.class);
-        //System.out.println(pojo2);
+        PrivatePojo pojo2 = mapper.readValue(Files.newReader(testFile, Charset.defaultCharset()), PrivatePojo.class);
+        System.out.println(pojo2);
 
     }
 }

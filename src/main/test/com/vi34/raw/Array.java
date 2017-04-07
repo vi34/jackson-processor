@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.List;
+
 /**
  * Created by vi34 on 03/04/2017.
  */
@@ -15,4 +17,6 @@ import lombok.ToString;
 public class Array {
     public int[] ints;
     public Pojo[] pojos;
+    public List<Integer> lInts;
+    public List<Pojo> lPojos;
 }

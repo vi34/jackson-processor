@@ -1,12 +1,14 @@
 package com.vi34.beans;
 
+
+import com.sun.tools.javac.code.Type;
+
 import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import java.util.ArrayList;
 import java.util.List;
 
 import static javax.lang.model.type.TypeKind.*;
@@ -38,8 +40,8 @@ public class Inspector {
     private void processField(BeanDefinition definition, VariableElement member) {
         if (!member.getModifiers().contains(Modifier.PRIVATE)) {
             TypeMirror type = member.asType();
-            if (type.getKind().equals(ARRAY)) {// TODO add collections
-                type = ((ArrayType) type).getComponentType();
+            if (type.getKind().equals(ARRAY) || iterable(type)) {// TODO add collections
+                type = iterable(type) ? ((Type.ClassType) type).getTypeArguments().get(0) : ((ArrayType) type).getComponentType();
                 ContainerProp property = new ContainerProp(member);
                 property.setField(true);
                 Property propertyEl = new Property(type);
@@ -68,6 +70,11 @@ public class Inspector {
                 || type.toString().equals("java.lang.Boolean");
     }
 
+    private boolean iterable(TypeMirror type) {
+        List<? extends TypeMirror> supertypes = typeUtils.directSupertypes(type);
+        return supertypes.size() > 0 && supertypes.stream().anyMatch(t -> typeUtils.erasure(t).toString().equals("java.util.Collection"));
+    }
+
     private boolean isNumber(TypeMirror type) {
         List<? extends TypeMirror> supertypes = typeUtils.directSupertypes(type);
         if (supertypes.size() > 0 && supertypes.get(0).toString().equals("java.lang.Number"))
@@ -75,7 +82,6 @@ public class Inspector {
 
         TypeKind kind = type.getKind();
         return kind == INT || kind == LONG || kind == SHORT || kind == BYTE || kind == DOUBLE || kind == FLOAT;
-
     }
 
 }

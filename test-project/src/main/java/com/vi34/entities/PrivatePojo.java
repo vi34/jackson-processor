@@ -1,6 +1,8 @@
 package com.vi34.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.vi34.serializers.PPojoDeserializer;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -10,12 +12,10 @@ import java.util.Random;
 /**
  * Created by vi34 on 13/08/16.
  */
-@Getter
-@Setter
 @AllArgsConstructor
 @ToString
 @NoArgsConstructor
-public class PrivatePojo {
+public class PrivatePojo extends Prox {
     @JsonProperty("i1")
     private int i1;
     @JsonProperty("Str")
