@@ -82,7 +82,7 @@ public class JUnitCompilation {
     }
 
     @Test
-    public void array() throws IOException {
+    public void arrayAndList() throws IOException {
         Assert.assertTrue(load(Array.class, mapper));
         int[] ints = {1, 5, 10, 2, 9, 8, 1, 1, 3};
         Pojo[] pojos = {new Pojo(1, 3.2), new Pojo(2, 5.2), new Pojo(3, 4.2)};

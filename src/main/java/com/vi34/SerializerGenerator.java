@@ -1,6 +1,8 @@
 package com.vi34;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.squareup.javapoet.*;
 import com.vi34.beans.BeanDefinition;
@@ -12,6 +14,7 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.util.Elements;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -79,7 +82,7 @@ public class SerializerGenerator {
                 .addMethod(serialize);
 
         for (Property property : unit.getProps()) {
-            addProp(property, serializeImpl, serializerBuilder, currentSerializeInfo, true);
+            addProp(property, serializeImpl, currentSerializeInfo, true);
         }
 
         serializeImpl.addStatement("gen.writeEndObject()");
@@ -88,6 +91,12 @@ public class SerializerGenerator {
         for (SerializeInfo propInfo : currentSerializeInfo.getProps().values()) {
             serializerBuilder.addMethod(propInfo.getSerializeMethod());
         }
+        currentSerializeInfo.getStrings().forEach((k, v) -> {
+            FieldSpec constDef = FieldSpec.builder(SerializedString.class, k, Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
+                    .initializer("new SerializedString($S)", v)
+                    .build();
+            serializerBuilder.addField(constDef);
+        });
         TypeSpec serializer = serializerBuilder.addMethod(serImpl).build();
 
 
@@ -130,16 +139,19 @@ public class SerializerGenerator {
     }
 
     // TODO handle nulls
-    void addProp(Property property, MethodSpec.Builder serialize, TypeSpec.Builder serializerBuilder, SerializeInfo current, boolean named) throws IOException, GenerationException {
+    void addProp(Property property, MethodSpec.Builder serialize, SerializeInfo current, boolean named) throws IOException, GenerationException {
         String name = property.getName();
-        if (named)
-            serialize.addStatement("gen.writeFieldName($S)", name);  // TODO SerializedString
+        if (named) {
+            String constName = convertToConstName(name);
+            serialize.addStatement("gen.writeFieldName($L)", constName);
+            current.getStrings().put(constName, name);
+        }
         if (property instanceof ContainerProp) {
             serialize.addStatement("gen.writeStartArray()");
             Property elem = ((ContainerProp) property).getElem();
             serialize.beginControlFlow("for ($T $L : $L) ", elem.getTName()
                     , elem.getName().toLowerCase().charAt(0), accessorString(property));
-            addProp(elem, serialize, serializerBuilder, current, false);
+            addProp(elem, serialize, current, false);
             serialize.endControlFlow();
             serialize.addStatement("gen.writeEndArray()");
         } else if (property.isSimple()) {
@@ -150,13 +162,19 @@ public class SerializerGenerator {
                 BeanDefinition beanDef = beansInfo.get(property.getTypeName());
                 if (beanDef == null) {
                     // todo unknown class.
+                    // use provider
                 } else {
                     serInfo = generateSerializer(beanDef);
                 }
             }
             serialize.addStatement("$L($L, gen, provider)", serInfo.getSerializeMethod().name, accessorString(property));
             current.getProps().putIfAbsent(serInfo.getTypeName(), serInfo);
+            current.getStrings().putAll(serInfo.getStrings());
         }
+    }
+
+    private String convertToConstName(String name) {
+        return "FIELD_" + name.toUpperCase();
     }
 
 }

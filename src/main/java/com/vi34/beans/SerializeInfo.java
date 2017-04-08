@@ -19,9 +19,11 @@ public class SerializeInfo {
     String typeName;
     MethodSpec serializeMethod;
     Map<String, SerializeInfo> props;
+    Map<String, String> strings;
 
     public SerializeInfo(String typeName) {
         this.typeName = typeName;
         props = new HashMap<>();
+        strings = new HashMap<>();
     }
 }
