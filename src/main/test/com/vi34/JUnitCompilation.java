@@ -92,4 +92,15 @@ public class JUnitCompilation {
         Array read = mapper.readValue(new File("tmp"), Array.class);
         Assert.assertEquals(val, read);
     }
+
+    @Test
+    public void enums() throws IOException {
+        Assert.assertTrue(load(Enums.class, mapper));
+
+        Enums val = new Enums(Enums.En.TWO);
+
+        mapper.writeValue(new File("tmp"), val);
+        Enums read = mapper.readValue(new File("tmp"), Enums.class);
+        Assert.assertEquals(val, read);
+    }
 }

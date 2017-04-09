@@ -20,6 +20,7 @@ public class Property {
     boolean isField;
     boolean isSimple; //Todo handle arrays and collections
     boolean isNumber;
+    boolean isEnum;
     String name;
     String typeName;
     String accessor;

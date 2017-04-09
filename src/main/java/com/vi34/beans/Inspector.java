@@ -49,6 +49,13 @@ public class Inspector {
                 property.elem = propertyEl;
                 propertyEl.setAccessor(""+propertyEl.getName().toLowerCase().charAt(0));
                 definition.getProps().add(property);
+            } else if (isEnum(type)) {
+                Property property = new Property(member);
+                property.setField(true);
+                property.setSimple(true);
+                property.setEnum(true);
+                property.setAccessor("value." + property.getName() + ".toString()");
+                definition.getProps().add(property);
             } else {
                 Property property = new Property(member);
                 property.setField(true);
@@ -61,6 +68,11 @@ public class Inspector {
     private void fillWithType(TypeMirror type, Property property) {
         property.setNumber(isNumber(type));
         property.setSimple(computeSimple(type));
+    }
+
+    private boolean isEnum(TypeMirror type) {
+        List<? extends TypeMirror> supertypes = typeUtils.directSupertypes(type);
+        return supertypes.size() > 0 && supertypes.stream().anyMatch(t -> typeUtils.erasure(t).toString().equals("java.lang.Enum"));
     }
 
     private boolean computeSimple(TypeMirror type) {

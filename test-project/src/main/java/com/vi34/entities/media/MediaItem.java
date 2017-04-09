@@ -1,8 +1,12 @@
 package com.vi34.entities.media;
 
+import com.vi34.annotations.Json;
+import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 import java.util.List;
-
+@Json
+@EqualsAndHashCode
 public class MediaItem
 {
     public Media media;

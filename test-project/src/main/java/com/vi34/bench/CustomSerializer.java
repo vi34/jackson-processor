@@ -6,12 +6,14 @@ import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import com.vi34.*;
 import com.vi34.entities.PrivateComplex;
 import com.vi34.entities.PrivatePojo;
 import com.vi34.entities.media.MediaItem;
 import com.vi34.serializers.*;
 import com.vi34.entities.Pojo;
 import com.vi34.entities.Complex;
+import com.vi34.serializers.MediaItemSerializer;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -36,7 +38,7 @@ public class CustomSerializer {
     PrivateComplex privateComplex;
     MediaItem mediaItem;
 
-    @Param({"afterBurner", "custom", "reflection"})
+    @Param({"afterBurner", "custom", "reflection", "processor"})
     String method;
 
     public CustomSerializer() {
@@ -53,10 +55,13 @@ public class CustomSerializer {
         //module.addSerializer(PrivatePojo.class, new PPojoSerializer());
         //module.addSerializer(PrivateComplex.class, new PComplexSerializer());
         module.addSerializer(MediaItem.class, new MediaItemSerializer());
+        SimpleModule procModule = new SimpleModule();
+        procModule.addSerializer(MediaItem.class, new com.vi34.MediaItemSerializer());
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
                 break;
             case "custom": mapper.registerModule(module); break;
+            case "processor": mapper.registerModule(procModule); break;
             default:
         }
 
@@ -75,14 +80,14 @@ public class CustomSerializer {
         return mapper.writeValueAsString(pojo);
     }
 
-  /*  @Benchmark
+   /* @Benchmark
     @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public String complex() throws JsonProcessingException {
         return mapper.writeValueAsString(complex);
-    }*/
-
+    }
+*/
     @Benchmark
     @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)

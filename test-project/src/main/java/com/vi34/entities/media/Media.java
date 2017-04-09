@@ -1,11 +1,16 @@
 package com.vi34.entities.media;
 
+import com.vi34.annotations.Json;
+import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by vi34 on 31/03/2017.
  */
+@Json
+@EqualsAndHashCode
 public class Media {
 
     public String uri;

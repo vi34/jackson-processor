@@ -106,6 +106,10 @@ public class SerializerGenerator {
             return "writeNumber";
         }
 
+        if (prop.isEnum()) {
+            return "writeString";
+        }
+
         switch (prop.getTypeName()) {
             case "boolean":case "java.lang.Boolean": return "writeBoolean";
             case "char":case "java.lang.Character":case "java.lang.String": return "writeString";

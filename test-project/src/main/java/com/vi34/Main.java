@@ -36,18 +36,22 @@ public class Main {
 
         SimpleModule module = new SimpleModule();
 //        module.addSerializer(Pojo.class, new PojoSerializer());
-        //mapper.registerModule(module);
+        module.addSerializer(MediaItem.class, new MediaItemSerializer());
+        mapper.registerModule(module);
         //mapper.registerModule(new AfterburnerModule());
 
         //Pojo pojo = new Pojo(1, "test", Arrays.asList(3, 4 ,5 ,1), false, 3.1, 999, 'a');
-        mapper.writeValue(System.out, MediaItem.buildItem());
-        PrivatePojo pojo = PrivatePojo.makePrivatePojo();
+        MediaItem value = MediaItem.buildItem();
+        mapper.writeValue(writer, value);
+        MediaItem read = mapper.readValue(testFile, MediaItem.class);
+        System.out.println(read.equals(value));
+        /*PrivatePojo pojo = PrivatePojo.makePrivatePojo();
         mapper.writeValue(System.out, pojo);
 
         mapper.writeValue(writer, pojo);
 
         PrivatePojo pojo2 = mapper.readValue(Files.newReader(testFile, Charset.defaultCharset()), PrivatePojo.class);
-        System.out.println(pojo2);
+        System.out.println(pojo2);*/
 
     }
 }
