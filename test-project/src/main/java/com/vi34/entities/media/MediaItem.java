@@ -2,11 +2,13 @@ package com.vi34.entities.media;
 
 import com.vi34.annotations.Json;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 @Json
 @EqualsAndHashCode
+@ToString
 public class MediaItem
 {
     public Media media;
@@ -31,7 +33,7 @@ public class MediaItem
         content.width = 640;
         content.height = 480;
         content.format = "video/mpeg4";
-        content.duration = 18000000L;
+        content.duration = 180000000000000000L;
         content.size = 58982400L;
         content.bitrate = 262144;
         content.copyright = "None";

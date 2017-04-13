@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.io.Files;
+import com.vi34.deserializers.MediaItemDeserializer;
+import com.vi34.deserializers.MediaItemDeserializerHand;
 import com.vi34.entities.Pojo;
 import com.vi34.entities.Complex;
 import com.vi34.entities.PrivatePojo;
@@ -36,15 +38,16 @@ public class Main {
 
         SimpleModule module = new SimpleModule();
 //        module.addSerializer(Pojo.class, new PojoSerializer());
-        module.addSerializer(MediaItem.class, new MediaItemSerializer());
+        module.addSerializer(MediaItem.class, new com.vi34.serializers.MediaItemSerializer());
+        module.addDeserializer(MediaItem.class, new MediaItemDeserializer());
         mapper.registerModule(module);
         //mapper.registerModule(new AfterburnerModule());
 
         //Pojo pojo = new Pojo(1, "test", Arrays.asList(3, 4 ,5 ,1), false, 3.1, 999, 'a');
-        MediaItem value = MediaItem.buildItem();
-        mapper.writeValue(writer, value);
-        MediaItem read = mapper.readValue(testFile, MediaItem.class);
-        System.out.println(read.equals(value));
+        //MediaItem value = MediaItem.buildItem();
+       // mapper.writeValue(writer, value);
+        MediaItem read = mapper.readValue(new File("deser.json"), MediaItem.class);
+        System.out.println(read);
         /*PrivatePojo pojo = PrivatePojo.makePrivatePojo();
         mapper.writeValue(System.out, pojo);
 

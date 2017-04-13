@@ -1,0 +1,27 @@
+{
+  "media" : {
+    "player" : "JAVA",
+    "uri" : "http://javaone.com/keynote.mpg",
+    "title" : "Javaone Keynote",
+    "width" : 640,
+    "height" : 480,
+    "format" : "video/mpeg4",
+    "duration" : 180000000000000000,
+    "size" : 58982400,
+    "copyright" : "None",
+    "persons" : [ "Bill Gates", "Steve Jobs" ]
+  },
+  "images" : [ {
+    "uri" : "http://javaone.com/keynote_large.jpg",
+    "title" : "Javaone Keynote",
+    "width" : 1024,
+    "height" : 768,
+    "size" : "LARGE"
+  }, {
+    "uri" : "http://javaone.com/keynote_small.jpg",
+    "title" : "Javaone Keynote",
+    "width" : 320,
+    "height" : 240,
+    "size" : "SMALL"
+  } ]
+}

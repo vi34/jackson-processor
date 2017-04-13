@@ -33,7 +33,7 @@
                     <arguments>
                         <argument>-classpath</argument>
                         <classpath />
-                        <argument>com.vi34.bench.CustomSerializer</argument>
+                        <argument>com.vi34.bench.Deserialization</argument>
                     </arguments>
                 </configuration>
             </plugin>

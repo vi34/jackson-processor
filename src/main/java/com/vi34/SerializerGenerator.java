@@ -1,7 +1,6 @@
 package com.vi34;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.squareup.javapoet.*;
@@ -14,7 +13,6 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.util.Elements;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -49,10 +47,10 @@ public class SerializerGenerator {
                 .addParameter(SerializerProvider.class, "provider")
                 .returns(void.class)
                 .addException(IOException.class)
-                .addStatement("$L(value, gen, provider)", unit.getSimpleName().toLowerCase())
+                .addStatement("$L(value, gen, provider)", writeMethodName(unit))
                 .build();
 
-        MethodSpec.Builder serializeImpl = MethodSpec.methodBuilder(unit.getSimpleName().toLowerCase())
+        MethodSpec.Builder serializeImpl = MethodSpec.methodBuilder(writeMethodName(unit))
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(beanClass, "value")
                 .addParameter(JsonGenerator.class, "gen")
@@ -107,6 +105,10 @@ public class SerializerGenerator {
         currentSerializeInfo.setSerializeMethod(serImpl);
         processed.put(unit.getTypeName(), currentSerializeInfo);
         return currentSerializeInfo;
+    }
+
+    private String writeMethodName(BeanDefinition unit) {
+        return "write"+unit.getSimpleName().toLowerCase();
     }
 
     //TODO handle more types. Watch JsonGenerator._writeSimpleObject
