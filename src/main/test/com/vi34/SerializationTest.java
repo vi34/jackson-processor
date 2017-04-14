@@ -1,6 +1,7 @@
 package com.vi34;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -21,7 +22,7 @@ import static com.vi34.Compilation.load;
 /**
  * Created by vi34 on 18/02/2017.
  */
-public class JUnitCompilation {
+public class SerializationTest {
 
     private static MappingJsonFactory factory = new MappingJsonFactory();
     private static ObjectMapper mapper = new ObjectMapper(factory);
@@ -41,9 +42,7 @@ public class JUnitCompilation {
 
         WithString val = new WithString(1, 1.2, "str", "name");
 
-        mapper.writeValue(new File("tmp"), val);
-        WithString read = mapper.readValue(new File("tmp"), WithString.class);
-        Assert.assertEquals(val, read);
+        check(val, WithString.class);
     }
 
 
@@ -51,22 +50,18 @@ public class JUnitCompilation {
     public void pojo() throws IOException {
         Assert.assertTrue(load(Pojo.class, mapper));
 
-        Pojo pojo = new Pojo(13, 0.4);
+        Pojo val = new Pojo(13, 0.4);
 
-        mapper.writeValue(new File("tmp"), pojo);
-        Pojo read = mapper.readValue(new File("tmp"), Pojo.class);
-        Assert.assertEquals(pojo, read);
+        check(val, Pojo.class);
     }
 
     @Test
     public void complex() throws IOException {
         Assert.assertTrue(load(Complex.class, mapper));
 
-        Complex complex = new Complex(1, new Pojo(1, 2));
+        Complex val = new Complex(1, new Pojo(1, 2));
 
-        mapper.writeValue(new File("tmp"), complex);
-        Complex read = mapper.readValue(new File("tmp"), Complex.class);
-        Assert.assertEquals(complex, read);
+        check(val, Complex.class);
     }
 
     @Test
@@ -76,9 +71,7 @@ public class JUnitCompilation {
         Boxing val = new Boxing(1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true,
                 1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true);
 
-        mapper.writeValue(new File("tmp"), val);
-        Boxing read = mapper.readValue(new File("tmp"), Boxing.class);
-        Assert.assertEquals(val, read);
+        check(val, Boxing.class);
     }
 
     @Test
@@ -88,9 +81,7 @@ public class JUnitCompilation {
         Pojo[] pojos = {new Pojo(1, 3.2), new Pojo(2, 5.2), new Pojo(3, 4.2)};
         Array val = new Array(ints, pojos, Arrays.asList(1 ,2,5), Arrays.asList(new Pojo(5, 6)));
 
-        mapper.writeValue(new File("tmp"), val);
-        Array read = mapper.readValue(new File("tmp"), Array.class);
-        Assert.assertEquals(val, read);
+        check(val, Array.class);
     }
 
     @Test
@@ -99,8 +90,23 @@ public class JUnitCompilation {
 
         Enums val = new Enums(Enums.En.TWO);
 
-        mapper.writeValue(new File("tmp"), val);
-        Enums read = mapper.readValue(new File("tmp"), Enums.class);
+        check(val, Enums.class);
+    }
+
+
+    @Test
+    public void resolveUnknown() throws IOException {
+        Assert.assertTrue(load(Resolve.class, mapper));
+
+        Resolve val = new Resolve("resolve", new UnknownClass(999, "unknown"));
+
+        check(val, Resolve.class);
+    }
+
+    private <T> void check(T val, Class<T> clazz) throws IOException {
+        String json = mapper.writeValueAsString(val);
+        T read = mapper.readValue(json, clazz);
         Assert.assertEquals(val, read);
     }
+
 }

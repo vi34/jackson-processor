@@ -1,13 +1,12 @@
-package com.vi34.beans;
+package com.vi34.generation;
 
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
+import com.vi34.beans.Property;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.lang.model.type.TypeMirror;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,15 +14,17 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class SerializeInfo {
+public class SerializationInfo {
     String typeName;
     MethodSpec serializeMethod;
-    Map<String, SerializeInfo> props;
+    Map<String, SerializationInfo> props;
     Map<String, String> strings;
+    Map<String, TypeName> provided;
 
-    public SerializeInfo(String typeName) {
+    public SerializationInfo(String typeName) {
         this.typeName = typeName;
         props = new HashMap<>();
         strings = new HashMap<>();
+        provided = new HashMap<>();
     }
 }

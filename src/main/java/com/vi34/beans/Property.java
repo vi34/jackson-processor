@@ -1,10 +1,9 @@
 package com.vi34.beans;
 
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.vi34.utils.Utils;
+import lombok.*;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -15,6 +14,7 @@ import javax.lang.model.type.TypeMirror;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class Property {
 
     boolean isField;
@@ -34,8 +34,7 @@ public class Property {
 
     Property(TypeMirror type) {
         typeName = type.toString();
-        int dot = typeName.lastIndexOf('.');
-        name = dot == -1 ? typeName : typeName.substring(dot + 1);
+        name = Utils.qualifiedToSimple(typeName);
         tName = TypeName.get(type);
     }
 

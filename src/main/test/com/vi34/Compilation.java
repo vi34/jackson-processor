@@ -1,24 +1,15 @@
 package com.vi34;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.vi34.raw.Complex;
-import com.vi34.raw.Pojo;
-import com.vi34.raw.WithString;
+import com.vi34.generation.SerializerGenerator;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
 
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
 /**

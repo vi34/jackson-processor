@@ -12,7 +12,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class Pojo {
-    public int i1;
-    public double a2;
+public class Resolve {
+    public String name;
+    public UnknownClass unknownClass;
 }

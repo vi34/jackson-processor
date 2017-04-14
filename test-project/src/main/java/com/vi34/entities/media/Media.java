@@ -1,6 +1,6 @@
 package com.vi34.entities.media;
 
-import com.vi34.annotations.Json;
+import com.vi34.annotations.GenerateClasses;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by vi34 on 31/03/2017.
  */
-@Json
+@GenerateClasses
 @EqualsAndHashCode
 public class Media {
 

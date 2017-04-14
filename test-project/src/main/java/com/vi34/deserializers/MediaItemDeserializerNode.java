@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.*;
-import com.vi34.annotations.Json;
+import com.vi34.annotations.GenerateClasses;
 import com.vi34.entities.media.*;
 import jdk.nashorn.internal.runtime.regexp.joni.ast.StringNode;
 
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 /**
  * Created by vi34 on 09/04/2017.
  */
-public class MediaItemDeserializerHand extends JsonDeserializer<MediaItem> {
+public class MediaItemDeserializerNode extends JsonDeserializer<MediaItem> {
     @Override
     public MediaItem deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         ObjectCodec codec = p.getCodec();
@@ -68,30 +68,6 @@ public class MediaItemDeserializerHand extends JsonDeserializer<MediaItem> {
     public Size readSize(JsonNode node) {
         return node == null ? null : Size.valueOf(node.asText());
     }
-    /*
-    public String uri;
-    public String title;        // Can be unset.
-    public int width;
-    public int height;
-    public String format;
-    public long duration;
-    public long size;
-    public int bitrate;         // Can be unset.
-    public boolean hasBitrate;
-
-    public List<String> persons;
-
-    public Player player;
-
-    public String copyright;    // Can be unset.
-
-
-    image:
-        public String uri;
-    public String title;
-    public int width, height;
-    public Size size;
-     */
 
     public Image readImage(JsonNode node) {
         Image image = new Image();

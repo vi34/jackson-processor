@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class BeanDefinition {
+public class BeanDescription {
 
     String simpleName;
     String packageName;
@@ -21,10 +21,10 @@ public class BeanDefinition {
     TypeMirror type;
     TypeElement element;
     List<Property> props;
-    //save getters for fields
+    //TODO: save getters for fields
 
 
-    public BeanDefinition(TypeElement element) {
+    public BeanDescription(TypeElement element) {
         this.element = element;
         simpleName = element.getSimpleName().toString();
         String qualified = element.getQualifiedName().toString();

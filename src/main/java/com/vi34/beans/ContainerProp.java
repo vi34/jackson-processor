@@ -15,6 +15,5 @@ public class ContainerProp extends Property {
 
     ContainerProp(VariableElement element) {
         super(element);
-
     }
 }

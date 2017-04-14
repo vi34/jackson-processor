@@ -28,14 +28,14 @@ public class ComplexSerializer extends StdSerializer<Complex> {
         gen.writeNumberField("num", value.getNum());
         gen.writeStringField("name", value.getName());
 
-        gen.writeArrayFieldStart("list");
-//        JsonSerializer<Object> pojoSer =  provider.findValueSerializer(Pojo.class);
+        gen.writeArrayFieldStart("pojos");
+        //JsonSerializer<Object> pojoSer = provider.findValueSerializer(Pojo.class);
         for (Pojo v : value.getList()) {
-//            pojoSer.serialize(v, gen, provider);
+            //pojoSer.serialize(v, gen, provider);
             gen.writeStartObject();
             gen.writeNumberField("i1", v.getI1());
-            gen.writeStringField("s", v.getStr());
-            gen.writeArrayFieldStart("Flist");
+            gen.writeStringField("Str", v.getStr());
+            gen.writeArrayFieldStart("Ilist");
             for (int val : v.getList()) {
                 gen.writeNumber(val);
             }
@@ -49,4 +49,5 @@ public class ComplexSerializer extends StdSerializer<Complex> {
         gen.writeEndArray();
         gen.writeEndObject();
     }
+
 }

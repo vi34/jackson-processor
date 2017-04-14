@@ -1,29 +1,20 @@
 package com.vi34.bench;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.vi34.deserializers.MediaItemDeserializer;
-import com.vi34.deserializers.MediaItemDeserializerHand;
-import com.vi34.entities.Complex;
+import com.vi34.deserializers.MediaItemDeserializerNode;
 import com.vi34.entities.Pojo;
-import com.vi34.entities.PrivateComplex;
-import com.vi34.entities.PrivatePojo;
-import com.vi34.entities.media.Media;
 import com.vi34.entities.media.MediaItem;
-import com.vi34.serializers.ComplexSerializer;
-import com.vi34.serializers.MediaItemSerializer;
-import com.vi34.serializers.PojoSerializer;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -52,7 +43,7 @@ public class Deserialization {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(MediaItem.class, new MediaItemDeserializer());
         SimpleModule procModule = new SimpleModule();
-        procModule.addDeserializer(MediaItem.class, new MediaItemDeserializerHand());
+        procModule.addDeserializer(MediaItem.class, new MediaItemDeserializerNode());
 
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
@@ -88,22 +79,6 @@ public class Deserialization {
     public MediaItem media() throws IOException {
         return mapper.readValue(json, MediaItem.class);
     }
-
-   /* @Benchmark
-    @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
-    @OutputTimeUnit(TimeUnit.NANOSECONDS)
-    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
-    public String privatePojo() throws JsonProcessingException {
-        return mapper.writeValueAsString(privatePojo);
-    }
-
-    @Benchmark
-    @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
-    @OutputTimeUnit(TimeUnit.NANOSECONDS)
-    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
-    public String privateComplex() throws JsonProcessingException {
-        return mapper.writeValueAsString(privateComplex);
-    }*/
 
     public static void main(String[] args) throws RunnerException {
         Options options = new OptionsBuilder()

@@ -1,12 +1,12 @@
 package com.vi34.entities.media;
 
-import com.vi34.annotations.Json;
+import com.vi34.annotations.GenerateClasses;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
-@Json
+@GenerateClasses
 @EqualsAndHashCode
 @ToString
 public class MediaItem

@@ -1,7 +1,7 @@
 package com.vi34.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vi34.annotations.Json;
+import com.vi34.annotations.GenerateClasses;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 @NoArgsConstructor
+@EqualsAndHashCode
 public class Complex {
     String name;
     int num;

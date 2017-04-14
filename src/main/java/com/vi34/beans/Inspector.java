@@ -25,9 +25,9 @@ public class Inspector {
         this.typeUtils = typeUtils;
     }
 
-    public BeanDefinition inspect(TypeElement element) {
+    public BeanDescription inspect(TypeElement element) {
         List<? extends Element> members = elementUtils.getAllMembers(element);
-        BeanDefinition definition = new BeanDefinition(element);
+        BeanDescription definition = new BeanDescription(element);
         for (Element member: members) {
             if (member.getKind().equals(ElementKind.FIELD)) {
                 processField(definition, (VariableElement) member);
@@ -37,7 +37,7 @@ public class Inspector {
         return definition;
     }
 
-    private void processField(BeanDefinition definition, VariableElement member) {
+    private void processField(BeanDescription definition, VariableElement member) {
         if (!member.getModifiers().contains(Modifier.PRIVATE)) {
             TypeMirror type = member.asType();
             if (type.getKind().equals(ARRAY) || iterable(type)) {// TODO add collections

@@ -24,8 +24,8 @@ public class PojoSerializer extends StdSerializer<Pojo> {
     public void serialize(Pojo value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
         gen.writeNumberField("i1", value.getI1());
-        gen.writeStringField("s", value.getStr());
-        gen.writeArrayFieldStart("Flist");
+        gen.writeStringField("Str", value.getStr());
+        gen.writeArrayFieldStart("Ilist");
         for (int v : value.getList()) {
             gen.writeNumber(v);
         }
