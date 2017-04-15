@@ -11,6 +11,7 @@ import com.squareup.javapoet.*;
 import com.vi34.GenerationException;
 import com.vi34.beans.BeanDescription;
 import com.vi34.beans.ContainerProp;
+import com.vi34.beans.EnumProp;
 import com.vi34.beans.Property;
 import com.vi34.utils.Utils;
 
@@ -76,7 +77,7 @@ public class SerializerGenerator {
 
         addResolve(serializerBuilder, currentSerializationInfo);
 
-        JavaFile javaFile = JavaFile.builder("com.vi34", serializerBuilder.build())
+        JavaFile javaFile = JavaFile.builder(unit.getPackageName(), serializerBuilder.build())
                 .build();
 
         javaFile.writeTo(filer);
@@ -96,7 +97,7 @@ public class SerializerGenerator {
                 .addStatement("gen.writeStartObject()");
 
         for (Property property : unit.getProps()) {
-            addProperty(property, serializeImpl, currentSerializationInfo, true);
+            addProperty(property, serializeImpl, currentSerializationInfo, "value", true);
         }
 
         serializeImpl.addStatement("gen.writeEndObject()");
@@ -155,7 +156,7 @@ public class SerializerGenerator {
             return "writeNumber";
         }
 
-        if (prop.isEnum()) {
+        if (prop instanceof EnumProp) {
             return "writeString";
         }
 
@@ -168,18 +169,8 @@ public class SerializerGenerator {
     }
 
     //TODO handle AtomicLong, BigDecimal, ...
-    private String accessorString(Property prop) {
-        if (prop.getAccessor() != null)
-            return prop.getAccessor();
-        String res = "value." + (prop.isField() ? prop.getName() : prop.getter());
-
-        if (prop.getTypeName().equals("char") || prop.getTypeName().equals("java.lang.Character"))
-            res += " + \"\"";
-        return res;
-    }
-
     // TODO handle nulls
-    void addProperty(Property property, MethodSpec.Builder serialize, SerializationInfo current, boolean named) throws IOException, GenerationException {
+    void addProperty(Property property, MethodSpec.Builder serialize, SerializationInfo current, String varName, boolean named) throws IOException, GenerationException {
         String name = property.getName();
         if (named) {
             String constName = convertToConstName(name);
@@ -189,13 +180,14 @@ public class SerializerGenerator {
         if (property instanceof ContainerProp) {
             serialize.addStatement("gen.writeStartArray()");
             Property elem = ((ContainerProp) property).getElem();
+            String var = ""+elem.getName().toLowerCase().charAt(0);
             serialize.beginControlFlow("for ($T $L : $L) ", elem.getTName()
-                    , elem.getName().toLowerCase().charAt(0), accessorString(property));
-            addProperty(elem, serialize, current, false);
+                    , var, property.getAccessor(varName));
+            addProperty(elem, serialize, current,var, false);
             serialize.endControlFlow();
             serialize.addStatement("gen.writeEndArray()");
         } else if (property.isSimple()) {
-            serialize.addStatement("gen.$L($L)", genMethod(property), accessorString(property));
+            serialize.addStatement("gen.$L($L)", genMethod(property), property.getAccessor(varName));
         } else {
             SerializationInfo serInfo = processed.get(property.getTypeName());
             if (serInfo == null) {
@@ -215,7 +207,7 @@ public class SerializerGenerator {
                     serInfo = generateSerializer(beanDef);
                 }
             }
-            serialize.addStatement("$L($L, gen, provider)", serInfo.getSerializeMethod().name, accessorString(property));
+            serialize.addStatement("$L($L, gen, provider)", serInfo.getSerializeMethod().name, property.getAccessor(varName));
             processed.putIfAbsent(serInfo.getTypeName(), serInfo);
             current.getProps().putIfAbsent(serInfo.getTypeName(), serInfo);
             current.getStrings().putAll(serInfo.getStrings());

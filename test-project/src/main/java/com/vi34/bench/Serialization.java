@@ -47,7 +47,7 @@ public class Serialization {
         module.addSerializer(Complex.class, new ComplexSerializer());
         module.addSerializer(MediaItem.class, new MediaItemSerializer());
         SimpleModule procModule = new SimpleModule();
-        procModule.addSerializer(MediaItem.class, new com.vi34.MediaItemSerializer());
+        procModule.addSerializer(MediaItem.class, new com.vi34.entities.media.MediaItemSerializer());
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
                 break;
@@ -69,14 +69,14 @@ public class Serialization {
         return mapper.writeValueAsString(pojo);
     }
 
-   /* @Benchmark
+    @Benchmark
     @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public String complex() throws JsonProcessingException {
         return mapper.writeValueAsString(complex);
     }
-*/
+
     @Benchmark
     @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)

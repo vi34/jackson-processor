@@ -13,7 +13,8 @@ public class ContainerProp extends Property {
 
     Property elem;
 
-    ContainerProp(VariableElement element) {
+    ContainerProp(VariableElement element, Property elem) {
         super(element);
+        this.elem = elem;
     }
 }

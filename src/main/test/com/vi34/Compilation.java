@@ -52,9 +52,9 @@ public class Compilation {
 
     static <T> boolean load(Class<? extends T> type, ObjectMapper mapper) {
         try {
-            String className = "com.vi34." + type.getSimpleName() + SerializerGenerator.SUFFIX;
+            String className = type.getName() + SerializerGenerator.SUFFIX;
             SimpleModule module = new SimpleModule();
-            module.addSerializer(type ,(StdSerializer<T>) classLoader.loadClass(className).newInstance());
+            module.addSerializer(type, (StdSerializer<T>) classLoader.loadClass(className).newInstance());
             mapper.registerModule(module);
             return true;
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {

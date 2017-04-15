@@ -3,6 +3,7 @@ package com.vi34.raw;
 import com.vi34.annotations.GenerateClasses;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**

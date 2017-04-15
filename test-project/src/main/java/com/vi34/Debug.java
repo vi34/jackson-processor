@@ -20,7 +20,7 @@ import java.nio.charset.Charset;
  * Created by vi34 on 13/08/16.
  */
 
-public class Main {
+public class Debug {
 
     private static File testFile = new File("test.json");
 

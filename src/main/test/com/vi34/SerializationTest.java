@@ -75,6 +75,16 @@ public class SerializationTest {
     }
 
     @Test
+    public void getters() throws IOException {
+        Assert.assertTrue(load(Getters.class, mapper));
+
+        Getters val = new Getters(1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true,
+                1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true);
+
+        check(val, Getters.class);
+    }
+
+    @Test
     public void arrayAndList() throws IOException {
         Assert.assertTrue(load(Array.class, mapper));
         int[] ints = {1, 5, 10, 2, 9, 8, 1, 1, 3};
@@ -93,7 +103,6 @@ public class SerializationTest {
         check(val, Enums.class);
     }
 
-
     @Test
     public void resolveUnknown() throws IOException {
         Assert.assertTrue(load(Resolve.class, mapper));
@@ -102,6 +111,8 @@ public class SerializationTest {
 
         check(val, Resolve.class);
     }
+
+
 
     private <T> void check(T val, Class<T> clazz) throws IOException {
         String json = mapper.writeValueAsString(val);

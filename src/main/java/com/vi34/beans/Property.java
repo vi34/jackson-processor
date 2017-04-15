@@ -20,10 +20,10 @@ public class Property {
     boolean isField;
     boolean isSimple; //Todo handle arrays and collections
     boolean isNumber;
-    boolean isEnum;
     String name;
     String typeName;
     String accessor;
+    String getter;
     TypeName tName;
 
     Property(VariableElement element) {
@@ -38,7 +38,16 @@ public class Property {
         tName = TypeName.get(type);
     }
 
+    public String getAccessor(String var) {
+        String res = var + "." + getter();
+
+        if (getTypeName().equals("char") || getTypeName().equals("java.lang.Character"))
+            res += " + \"\"";
+        return res;
+    }
+
     public String getter() {
-        return "get" + Character.toUpperCase(name.charAt(0)) + name.substring(1) + "()";
+        if (isField) return getName();
+        return getter + "()";
     }
 }
