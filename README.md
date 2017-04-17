@@ -8,12 +8,12 @@ for _@GenerateClasses_ annotated classes.
 
 
 
-#####Benchmarks
+##### Benchmarks
 Benchmarks located in separate test-project.
 
 
 
-#####Tests
+##### Tests
 Tests integrated in main project. 
 
 For proper tests execution need to directly configure in project settings annotation processors (lombok) used in project.
