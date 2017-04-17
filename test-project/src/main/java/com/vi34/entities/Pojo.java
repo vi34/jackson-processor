@@ -18,6 +18,7 @@ import java.util.Random;
 @ToString
 @NoArgsConstructor
 @EqualsAndHashCode
+@GenerateClasses
 public class Pojo {
     @JsonProperty("i1") int i1;
     @JsonProperty("Str") String str;

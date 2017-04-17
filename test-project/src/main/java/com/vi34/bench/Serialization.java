@@ -48,6 +48,8 @@ public class Serialization {
         module.addSerializer(MediaItem.class, new MediaItemSerializer());
         SimpleModule procModule = new SimpleModule();
         procModule.addSerializer(MediaItem.class, new com.vi34.entities.media.MediaItemSerializer());
+        procModule.addSerializer(Complex.class, new com.vi34.entities.ComplexSerializer());
+        procModule.addSerializer(Pojo.class, new com.vi34.entities.PojoSerializer());
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
                 break;
@@ -57,7 +59,7 @@ public class Serialization {
         }
 
         pojo = Pojo.makePojo();
-        complex = Complex.makeComplex(5);
+        complex = Complex.makeComplex(3);
         mediaItem = MediaItem.buildItem();
     }
 

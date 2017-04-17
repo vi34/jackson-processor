@@ -37,6 +37,8 @@ public class Inspector {
         List<? extends Element> members = elementUtils.getAllMembers(element);
         BeanDescription definition = new BeanDescription(element);
         for (Element member: members) {
+            if (member.getModifiers().contains(Modifier.STATIC))
+                continue;
             if (member.getKind().equals(ElementKind.FIELD)) {
                 VariableElement field = (VariableElement) member;
                 fields.add(field);

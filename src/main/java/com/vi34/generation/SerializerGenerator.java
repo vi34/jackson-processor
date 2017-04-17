@@ -169,7 +169,8 @@ public class SerializerGenerator {
     }
 
     //TODO handle AtomicLong, BigDecimal, ...
-    // TODO handle nulls
+    // TODO handle null options
+    // TODO byte arrays - writeBinary
     void addProperty(Property property, MethodSpec.Builder serialize, SerializationInfo current, String varName, boolean named) throws IOException, GenerationException {
         String name = property.getName();
         if (named) {
@@ -178,14 +179,20 @@ public class SerializerGenerator {
             current.getStrings().put(constName, name);
         }
         if (property instanceof ContainerProp) {
-            serialize.addStatement("gen.writeStartArray()");
             Property elem = ((ContainerProp) property).getElem();
             String var = ""+elem.getName().toLowerCase().charAt(0);
-            serialize.beginControlFlow("for ($T $L : $L) ", elem.getTName()
-                    , var, property.getAccessor(varName));
+            serialize
+                    .beginControlFlow("if ($L != null)", property.getAccessor(varName))
+                    .addStatement("gen.writeStartArray()")
+                    .beginControlFlow("for ($T $L : $L) ", elem.getTName()
+                                        , var, property.getAccessor(varName));
             addProperty(elem, serialize, current,var, false);
-            serialize.endControlFlow();
-            serialize.addStatement("gen.writeEndArray()");
+            serialize
+                    .endControlFlow()
+                    .addStatement("gen.writeEndArray()")
+                    .nextControlFlow("else")
+                    .addStatement("gen.writeNull()")
+                    .endControlFlow();
         } else if (property.isSimple()) {
             serialize.addStatement("gen.$L($L)", genMethod(property), property.getAccessor(varName));
         } else {
@@ -207,7 +214,11 @@ public class SerializerGenerator {
                     serInfo = generateSerializer(beanDef);
                 }
             }
-            serialize.addStatement("$L($L, gen, provider)", serInfo.getSerializeMethod().name, property.getAccessor(varName));
+            serialize.beginControlFlow("if ($L != null)", property.getAccessor(varName))
+                    .addStatement("$L($L, gen, provider)", serInfo.getSerializeMethod().name, property.getAccessor(varName))
+                    .nextControlFlow("else")
+                    .addStatement("gen.writeNull()")
+                    .endControlFlow();
             processed.putIfAbsent(serInfo.getTypeName(), serInfo);
             current.getProps().putIfAbsent(serInfo.getTypeName(), serInfo);
             current.getStrings().putAll(serInfo.getStrings());

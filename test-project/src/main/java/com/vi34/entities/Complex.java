@@ -16,6 +16,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @EqualsAndHashCode
+@GenerateClasses
 public class Complex {
     String name;
     int num;

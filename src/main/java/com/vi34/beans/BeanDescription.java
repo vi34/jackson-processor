@@ -21,7 +21,6 @@ public class BeanDescription {
     TypeMirror type;
     TypeElement element;
     List<Property> props;
-    //TODO: save getters for fields
 
 
     public BeanDescription(TypeElement element) {

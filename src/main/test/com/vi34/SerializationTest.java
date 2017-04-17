@@ -5,17 +5,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.vi34.raw.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.validation.constraints.AssertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.vi34.Compilation.load;
 
@@ -111,6 +115,64 @@ public class SerializationTest {
 
         check(val, Resolve.class);
     }
+
+    @Test
+    public void resolveNull() throws IOException {
+        Assert.assertTrue(load(Resolve.class, mapper));
+
+        Resolve val = null;
+
+        check(val, Resolve.class);
+
+        val = new Resolve("resolve", null);
+        check(val, Resolve.class);
+
+        Assert.assertTrue(load(Complex.class, mapper));
+
+        Complex c = new Complex(3, null);
+        check(c, Complex.class);
+
+        Assert.assertTrue(load(Array.class, mapper));
+
+        Pojo[] pojos = {new Pojo(1, 0.2), null};
+        Array arr = new Array(null, pojos, null, Arrays.asList(pojos));
+        check(arr, Array.class);
+
+    }
+
+    @Test
+    public void statics() throws IOException {
+        Assert.assertTrue(load(Static.class, mapper));
+
+        Static val = new Static(1, 2);
+
+        check(val, Static.class);
+    }
+
+
+    @Test
+    public void maps() throws IOException {
+        Assert.assertTrue(load(Maps.class, mapper));
+
+        Map<String, String> props = new HashMap<>();
+        props.put("a", "1");
+        props.put("b", "2");
+        props.put("c", "3");
+
+        HashMap<Integer, String> h = new HashMap<>();
+        h.put(1, "abc");
+        h.put(2, "cde");
+        h.put(3, "efg");
+
+        TreeMap<String, Pojo> t = new TreeMap<>();
+        t.put("pojo", new Pojo(1, 0.4));
+        t.put("pojo2", new Pojo(2, 0.6));
+
+
+        Maps val = new Maps(props, h, t);
+        check(val, Maps.class);
+    }
+
 
 
 
