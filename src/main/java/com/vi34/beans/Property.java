@@ -3,6 +3,7 @@ package com.vi34.beans;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import com.vi34.GenerationException;
+import com.vi34.schema.JsonType;
 import com.vi34.utils.Utils;
 import lombok.*;
 
@@ -21,23 +22,25 @@ public class Property {
 
     boolean isField;
     boolean isSimple;
-    boolean isNumber;
     String name;
     String typeName;
     Function<String, String> accessor;
     String getter;
     TypeName tName;
+    JsonType jsonType;
 
     Property(VariableElement element) {
         name = element.getSimpleName().toString();
         typeName = element.asType().toString();
         tName = TypeName.get(element.asType());
+        jsonType = JsonType.OBJECT;
     }
 
     Property(TypeMirror type) {
         typeName = type.toString();
         name = Utils.qualifiedToSimple(typeName);
         tName = TypeName.get(type);
+        jsonType = JsonType.OBJECT;
     }
 
     public String getAccessor(String var) {
@@ -59,15 +62,23 @@ public class Property {
 
     //TODO handle more types. Watch JsonGenerator._writeSimpleObject
     public String genMethod() throws GenerationException {
-        if (isNumber()) {
-            return "writeNumber";
+
+        switch (jsonType) {
+            case NUMBER: return "writeNumber";
+            case STRING: return "writeString";
+            case BOOLEAN: return "writeBoolean";
+            default:
+                throw new GenerationException("Couldn't find generator method for " + this);
         }
+
+/*
 
         switch (getTypeName()) {
-            case "boolean":case "java.lang.Boolean": return "writeBoolean";
+            case "boolean":case "java.lang.Boolean":
             case "char":case "java.lang.Character":case "java.lang.String": return "writeString";
         }
+*/
 
-        throw new GenerationException("Couldn't find generator method for " + this);
+
     }
 }

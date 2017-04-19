@@ -19,6 +19,10 @@ public class SerializationInfo {
     MethodSpec serializeMethod;
     Map<String, SerializationInfo> props;
     Map<String, String> strings;
+
+    /**
+     *  properties which will be resolved at runtime
+     */
     Map<String, TypeName> provided;
 
     public SerializationInfo(String typeName) {

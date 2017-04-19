@@ -1,5 +1,6 @@
 package com.vi34.beans;
 
+import com.vi34.schema.JsonType;
 import lombok.Getter;
 
 import javax.lang.model.element.VariableElement;
@@ -19,6 +20,7 @@ public class MapProp extends Property {
         this.key = key;
         this.value = value;
         value.accessor = (var) -> var + ".getValue()";
+        jsonType = JsonType.OBJECT;
     }
 
     public static class KeyProp extends Property {

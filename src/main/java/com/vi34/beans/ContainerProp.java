@@ -1,5 +1,6 @@
 package com.vi34.beans;
 
+import com.vi34.schema.JsonType;
 import lombok.Getter;
 
 import javax.lang.model.element.VariableElement;
@@ -18,5 +19,6 @@ public class ContainerProp extends Property {
         super(element);
         this.elem = elem;
         elem.accessor = Function.identity();
+        jsonType = JsonType.ARRAY;
     }
 }

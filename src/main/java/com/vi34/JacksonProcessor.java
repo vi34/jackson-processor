@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import com.vi34.annotations.GenerateClasses;
 import com.vi34.beans.BeanDescription;
 import com.vi34.beans.Inspector;
+import com.vi34.generation.SchemaGenerator;
 import com.vi34.generation.SerializationInfo;
 import com.vi34.generation.SerializerGenerator;
 import com.vi34.utils.Utils;
@@ -63,11 +64,13 @@ public class JacksonProcessor extends AbstractProcessor {
                 beansInfo.put(beanDescription.getTypeName(), beanDescription);
             }
             SerializerGenerator generator = new SerializerGenerator(filer, messager, processed, beansInfo);
+            SchemaGenerator schemaGenerator = new SchemaGenerator(filer);
             for (Map.Entry<String, BeanDescription> e : beansInfo.entrySet()) {
                 try {
                     if (!processed.containsKey(e.getKey())) {
                         generator.generateSerializer(e.getValue());
                     }
+                    schemaGenerator.generateSchema(e.getValue());
                 } catch (Exception e1) {
                     messager.printMessage(Diagnostic.Kind.WARNING,
                             "Error during generation for " + e.getValue().getSimpleName());
