@@ -4,23 +4,15 @@ import com.sun.tools.javac.code.Type;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
 
-import java.util.List;
-
+import static com.vi34.utils.Utils.*;
 import static javax.lang.model.type.TypeKind.*;
 
 /**
  * Created by vi34 on 19/04/2017.
  */
 public class PropertyFabric {
-    private Types typeUtils;
-
-    PropertyFabric (Types typeUtils) {
-        this.typeUtils = typeUtils;
-    }
 
     Property construct(TypeMirror type) {
         Property property;
@@ -58,14 +50,9 @@ public class PropertyFabric {
         return property;
     }
 
-
     private void fillWithType(TypeMirror type, Property property) {
         property.setNumber(isNumber(type));
         property.setSimple(computeSimple(type));
-    }
-
-    private boolean isEnum(TypeMirror type) {
-        return haveSupertype(type, "java.lang.Enum");
     }
 
     private boolean computeSimple(TypeMirror type) {
@@ -75,29 +62,5 @@ public class PropertyFabric {
                 || type.toString().equals("java.lang.Boolean");
     }
 
-    private boolean iterable(TypeMirror type) {
-        return haveSupertype(type, "java.util.Collection");
-    }
 
-    private boolean isMap(TypeMirror type) {
-        return haveSupertype(type, "java.util.Map");
-    }
-
-
-    private boolean haveSupertype(TypeMirror type, String superType) {
-        if (typeUtils.erasure(type).toString().equals(superType)) return true;
-
-        for (TypeMirror directSuperType : typeUtils.directSupertypes(type)) {
-            if (haveSupertype(directSuperType, superType))
-                return true;
-        }
-        return false;
-    }
-
-    private boolean isNumber(TypeMirror type) {
-        if (haveSupertype(type, "java.lang.Number")) return true;
-
-        TypeKind kind = type.getKind();
-        return kind == INT || kind == LONG || kind == SHORT || kind == BYTE || kind == DOUBLE || kind == FLOAT;
-    }
 }

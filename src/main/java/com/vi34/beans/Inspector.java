@@ -20,17 +20,15 @@ import static javax.lang.model.type.TypeKind.*;
  */
 public class Inspector {
     private Elements elementUtils;
-    private Types typeUtils;
     private List<VariableElement> fields;
     private List<Symbol.MethodSymbol> methods;
     private PropertyFabric fabric;
 
-    public Inspector(Elements elementUtils, Types typeUtils) {
+    public Inspector(Elements elementUtils) {
         this.elementUtils = elementUtils;
-        this.typeUtils = typeUtils;
         fields = new ArrayList<>();
         methods = new ArrayList<>();
-        fabric = new PropertyFabric(typeUtils);
+        fabric = new PropertyFabric();
     }
 
     public BeanDescription inspect(TypeElement element) {

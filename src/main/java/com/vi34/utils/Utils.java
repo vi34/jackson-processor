@@ -2,12 +2,19 @@ package com.vi34.utils;
 
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+
+import static javax.lang.model.type.TypeKind.*;
 
 /**
  * Created by vi34 on 15/04/2017.
  */
 public class Utils {
+    public static Types typeUtils;
+
     public static String qualifiedToSimple(String typeName) {
         String erasure = typeName.split("[\\[<]")[0];
         int dot = erasure.lastIndexOf('.');
@@ -21,5 +28,34 @@ public class Utils {
                     String.format(msg, args),
                     e);
         }
+    }
+
+    public static boolean isEnum(TypeMirror type) {
+        return haveSupertype(type, "java.lang.Enum");
+    }
+
+    public static boolean iterable(TypeMirror type) {
+        return haveSupertype(type, "java.util.Collection");
+    }
+
+    public static boolean isMap(TypeMirror type) {
+        return haveSupertype(type, "java.util.Map");
+    }
+
+    private static boolean haveSupertype(TypeMirror type, String superType) {
+        if (typeUtils.erasure(type).toString().equals(superType)) return true;
+
+        for (TypeMirror directSuperType : typeUtils.directSupertypes(type)) {
+            if (haveSupertype(directSuperType, superType))
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean isNumber(TypeMirror type) {
+        if (haveSupertype(type, "java.lang.Number")) return true;
+
+        TypeKind kind = type.getKind();
+        return kind == INT || kind == LONG || kind == SHORT || kind == BYTE || kind == DOUBLE || kind == FLOAT;
     }
 }

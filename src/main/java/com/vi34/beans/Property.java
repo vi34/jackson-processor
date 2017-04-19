@@ -20,7 +20,7 @@ import java.util.function.Function;
 public class Property {
 
     boolean isField;
-    boolean isSimple; //Todo handle arrays and collections
+    boolean isSimple;
     boolean isNumber;
     String name;
     String typeName;

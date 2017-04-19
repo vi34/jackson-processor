@@ -46,6 +46,7 @@ public class JacksonProcessor extends AbstractProcessor {
         messager = processingEnv.getMessager();
         processed = new HashMap<>();
         beansInfo = new HashMap<>();
+        Utils.typeUtils = typeUtils;
     }
 
     @Override
@@ -57,7 +58,7 @@ public class JacksonProcessor extends AbstractProcessor {
                     continue;
                 }
                 TypeElement typeElement = (TypeElement) annotatedElement;
-                Inspector inspector = new Inspector(elementUtils, typeUtils);
+                Inspector inspector = new Inspector(elementUtils);
                 BeanDescription beanDescription = inspector.inspect(typeElement);
                 beansInfo.put(beanDescription.getTypeName(), beanDescription);
             }
