@@ -55,7 +55,7 @@ public class Serialization {
                 break;
             case "handWritten": mapper.registerModule(module); break;
             case "processor": mapper.registerModule(procModule); break;
-            default:
+            default: // reflection
         }
 
         pojo = Pojo.makePojo();
@@ -64,7 +64,7 @@ public class Serialization {
     }
 
     @Benchmark
-    @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
+    @BenchmarkMode({Mode.AverageTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public String pojo() throws JsonProcessingException {
@@ -72,7 +72,7 @@ public class Serialization {
     }
 
     @Benchmark
-    @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
+    @BenchmarkMode({Mode.AverageTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public String complex() throws JsonProcessingException {
@@ -80,7 +80,7 @@ public class Serialization {
     }
 
     @Benchmark
-    @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
+    @BenchmarkMode({Mode.AverageTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public String media() throws JsonProcessingException {
@@ -90,11 +90,10 @@ public class Serialization {
     public static void main(String[] args) throws RunnerException {
         Options options = new OptionsBuilder()
                 .include(Serialization.class.getSimpleName())
-                .warmupIterations(5)
+                .warmupIterations(4)
                 .measurementIterations(12)
                 .output("profile.txt")
-                .forks(2)
-                .threads(2)
+                .forks(1)
                 .build();
 
         new Runner(options).run();

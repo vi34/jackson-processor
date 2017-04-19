@@ -19,4 +19,5 @@ public class Array {
     public Pojo[] pojos;
     public List<Integer> lInts;
     public List<Pojo> lPojos;
+    public Enums.En[] ens;
 }

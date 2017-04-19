@@ -11,11 +11,12 @@ import com.squareup.javapoet.*;
 import com.vi34.GenerationException;
 import com.vi34.beans.BeanDescription;
 import com.vi34.beans.ContainerProp;
-import com.vi34.beans.EnumProp;
+import com.vi34.beans.MapProp;
 import com.vi34.beans.Property;
 import com.vi34.utils.Utils;
 
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.Map;
@@ -26,15 +27,18 @@ import java.util.Map;
 public class SerializerGenerator {
 
     public static final String SUFFIX = "Serializer";
+    private Messager messager;
 
     private Filer filer;
     private Map<String, SerializationInfo> processed;
     private Map<String, BeanDescription> beansInfo;
 
-    public SerializerGenerator(Filer filer, Map<String, SerializationInfo> processed, Map<String, BeanDescription> beansInfo) {
+    public SerializerGenerator(Filer filer, Messager messager, Map<String, SerializationInfo> processed, Map<String, BeanDescription> beansInfo) {
         this.filer = filer;
         this.processed = processed;
         this.beansInfo = beansInfo;
+        this.messager = messager;
+
     }
 
     public SerializationInfo generateSerializer(BeanDescription unit) throws IOException, GenerationException {
@@ -147,25 +151,7 @@ public class SerializerGenerator {
     }
 
     private String writeMethodName(String name) {
-        return "write"+name.toLowerCase();
-    }
-
-    //TODO handle more types. Watch JsonGenerator._writeSimpleObject
-    private String genMethod(Property prop) throws GenerationException {
-        if (prop.isNumber()) {
-            return "writeNumber";
-        }
-
-        if (prop instanceof EnumProp) {
-            return "writeString";
-        }
-
-        switch (prop.getTypeName()) {
-            case "boolean":case "java.lang.Boolean": return "writeBoolean";
-            case "char":case "java.lang.Character":case "java.lang.String": return "writeString";
-        }
-
-        throw new GenerationException("Couldn't find generator method for " + prop);
+        return "write_"+name.toLowerCase();
     }
 
     //TODO handle AtomicLong, BigDecimal, ...
@@ -186,15 +172,33 @@ public class SerializerGenerator {
                     .addStatement("gen.writeStartArray()")
                     .beginControlFlow("for ($T $L : $L) ", elem.getTName()
                                         , var, property.getAccessor(varName));
-            addProperty(elem, serialize, current,var, false);
+            addProperty(elem, serialize, current, var, false);
             serialize
                     .endControlFlow()
                     .addStatement("gen.writeEndArray()")
                     .nextControlFlow("else")
                     .addStatement("gen.writeNull()")
                     .endControlFlow();
+        } else if (property instanceof MapProp) {
+            MapProp.KeyProp key = ((MapProp) property).getKey();
+            Property value = ((MapProp) property).getValue();
+            String var = "entry";
+            serialize
+                    .beginControlFlow("if ($L != null)", property.getAccessor(varName))
+                    .addStatement("gen.writeStartObject()")
+                    .beginControlFlow("for ($T<$T,$T> $L : $L.entrySet())", ClassName.get(Map.Entry.class),
+                            key.getTName(), value.getTName(), var, property.getAccessor(varName))
+                    .addStatement("gen.writeFieldName($L)", key.getAccessor(var));
+            addProperty(value, serialize, current, var, false);
+
+            serialize
+                    .endControlFlow()
+                    .addStatement("gen.writeEndObject()")
+                    .nextControlFlow("else")
+                    .addStatement("gen.writeNull()")
+                    .endControlFlow();
         } else if (property.isSimple()) {
-            serialize.addStatement("gen.$L($L)", genMethod(property), property.getAccessor(varName));
+            serialize.addStatement("gen.$L($L)", property.genMethod(), property.getAccessor(varName));
         } else {
             SerializationInfo serInfo = processed.get(property.getTypeName());
             if (serInfo == null) {
@@ -210,6 +214,7 @@ public class SerializerGenerator {
                             .build();
 
                     current.getProvided().putIfAbsent(property.getTypeName(), property.getTName());
+                    Utils.warning(messager, null, "couldn't statically resolve serializer for %s", property.getTypeName());
                 } else {
                     serInfo = generateSerializer(beanDef);
                 }

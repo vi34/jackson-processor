@@ -11,9 +11,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static javax.lang.model.type.TypeKind.*;
 
@@ -25,12 +23,14 @@ public class Inspector {
     private Types typeUtils;
     private List<VariableElement> fields;
     private List<Symbol.MethodSymbol> methods;
+    private PropertyFabric fabric;
 
     public Inspector(Elements elementUtils, Types typeUtils) {
         this.elementUtils = elementUtils;
         this.typeUtils = typeUtils;
         fields = new ArrayList<>();
         methods = new ArrayList<>();
+        fabric = new PropertyFabric(typeUtils);
     }
 
     public BeanDescription inspect(TypeElement element) {
@@ -50,24 +50,13 @@ public class Inspector {
         return definition;
     }
 
+    // TODO refactor
     private void processField(BeanDescription definition, VariableElement member) {
         Symbol.MethodSymbol getter = findGetter(member);
         Property property;
 
         if (!member.getModifiers().contains(Modifier.PRIVATE) || getter != null) {
-            TypeMirror type = member.asType();
-            if (type.getKind().equals(ARRAY) || iterable(type)) {// TODO add Maps
-                type = iterable(type) ? ((Type.ClassType) type).getTypeArguments().get(0) : ((ArrayType) type).getComponentType();
-                Property propertyEl = new ElemProp(type);
-                fillWithType(type, propertyEl);
-                property = new ContainerProp(member, propertyEl);
-            } else if (isEnum(type)) {
-                property = new EnumProp(member);
-                property.setSimple(true);
-            } else {
-                property = new Property(member);
-                fillWithType(type, property);
-            }
+            property = fabric.construct(member);
             definition.getProps().add(property);
             property.setField(getter == null);
             if (getter != null) {
@@ -91,37 +80,6 @@ public class Inspector {
             }
         }
         return getter;
-    }
-
-    private void fillWithType(TypeMirror type, Property property) {
-        property.setNumber(isNumber(type));
-        property.setSimple(computeSimple(type));
-    }
-
-    private boolean isEnum(TypeMirror type) {
-        List<? extends TypeMirror> supertypes = typeUtils.directSupertypes(type);
-        return supertypes.size() > 0 && supertypes.stream().anyMatch(t -> typeUtils.erasure(t).toString().equals("java.lang.Enum"));
-    }
-
-    private boolean computeSimple(TypeMirror type) {
-        return type.getKind().isPrimitive() || isNumber(type)
-                || type.toString().equals("java.lang.String")
-                || type.toString().equals("java.lang.Character")
-                || type.toString().equals("java.lang.Boolean");
-    }
-
-    private boolean iterable(TypeMirror type) {
-        List<? extends TypeMirror> supertypes = typeUtils.directSupertypes(type);
-        return supertypes.size() > 0 && supertypes.stream().anyMatch(t -> typeUtils.erasure(t).toString().equals("java.util.Collection"));
-    }
-
-    private boolean isNumber(TypeMirror type) {
-        List<? extends TypeMirror> supertypes = typeUtils.directSupertypes(type);
-        if (supertypes.size() > 0 && supertypes.get(0).toString().equals("java.lang.Number"))
-            return true;
-
-        TypeKind kind = type.getKind();
-        return kind == INT || kind == LONG || kind == SHORT || kind == BYTE || kind == DOUBLE || kind == FLOAT;
     }
 
 }

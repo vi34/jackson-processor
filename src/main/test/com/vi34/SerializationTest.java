@@ -1,25 +1,19 @@
 package com.vi34;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.vi34.raw.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.validation.constraints.AssertTrue;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.vi34.Compilation.load;
 
@@ -93,7 +87,9 @@ public class SerializationTest {
         Assert.assertTrue(load(Array.class, mapper));
         int[] ints = {1, 5, 10, 2, 9, 8, 1, 1, 3};
         Pojo[] pojos = {new Pojo(1, 3.2), new Pojo(2, 5.2), new Pojo(3, 4.2)};
-        Array val = new Array(ints, pojos, Arrays.asList(1 ,2,5), Arrays.asList(new Pojo(5, 6)));
+        Enums.En[] ens = {Enums.En.ONE, Enums.En.TWO, Enums.En.THREE};
+
+        Array val = new Array(ints, pojos, Arrays.asList(1 ,2,5), Arrays.asList(new Pojo(5, 6)), ens);
 
         check(val, Array.class);
     }
@@ -135,7 +131,7 @@ public class SerializationTest {
         Assert.assertTrue(load(Array.class, mapper));
 
         Pojo[] pojos = {new Pojo(1, 0.2), null};
-        Array arr = new Array(null, pojos, null, Arrays.asList(pojos));
+        Array arr = new Array(null, pojos, null, Arrays.asList(pojos), null);
         check(arr, Array.class);
 
     }
@@ -168,12 +164,21 @@ public class SerializationTest {
         t.put("pojo", new Pojo(1, 0.4));
         t.put("pojo2", new Pojo(2, 0.6));
 
-
         Maps val = new Maps(props, h, t);
         check(val, Maps.class);
     }
 
+    /*@Test
+    public void keyObjectMaps() throws IOException {
+        // Assert.assertTrue(load(Maps.class, mapper));
 
+        Map<Pojo, Pojo> kobj = new HashMap<>();
+        kobj.put(new Pojo(1, 3.2), new Pojo(2, 0.4));
+        kobj.put(new Pojo(1, 332.21), new Pojo(2, 0.6));
+
+        KeyObjectMap val = new KeyObjectMap(kobj);
+        check(val, KeyObjectMap.class);
+    }*/
 
 
     private <T> void check(T val, Class<T> clazz) throws IOException {

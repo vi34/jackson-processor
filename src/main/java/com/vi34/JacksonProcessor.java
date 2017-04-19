@@ -6,6 +6,7 @@ import com.vi34.beans.BeanDescription;
 import com.vi34.beans.Inspector;
 import com.vi34.generation.SerializationInfo;
 import com.vi34.generation.SerializerGenerator;
+import com.vi34.utils.Utils;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -52,7 +53,7 @@ public class JacksonProcessor extends AbstractProcessor {
         try {
             for (Element annotatedElement: roundEnv.getElementsAnnotatedWith(GenerateClasses.class)) {
                 if (annotatedElement.getKind() != ElementKind.CLASS) {
-                    warning(annotatedElement, "Only classes can be annotated with @%s", GenerateClasses.class.getSimpleName());
+                    Utils.warning(messager, annotatedElement, "Only classes can be annotated with @%s", GenerateClasses.class.getSimpleName());
                     continue;
                 }
                 TypeElement typeElement = (TypeElement) annotatedElement;
@@ -60,26 +61,25 @@ public class JacksonProcessor extends AbstractProcessor {
                 BeanDescription beanDescription = inspector.inspect(typeElement);
                 beansInfo.put(beanDescription.getTypeName(), beanDescription);
             }
-            if (roundEnv.processingOver()) {
-                SerializerGenerator generator = new SerializerGenerator(filer, processed, beansInfo);
-                for (Map.Entry<String, BeanDescription> e : beansInfo.entrySet()) {
-                    try {
-                        if (!processed.containsKey(e.getKey())) {
-                            generator.generateSerializer(e.getValue());
-                        }
-                    } catch (Exception e1) {
-                        messager.printMessage(Diagnostic.Kind.WARNING,
-                                "Error during generation for " + e.getValue().getSimpleName());
-                        if (DEBUG) {
-                            e1.printStackTrace();
-                        }
-                        warning(null, e1.getMessage());
+            SerializerGenerator generator = new SerializerGenerator(filer, messager, processed, beansInfo);
+            for (Map.Entry<String, BeanDescription> e : beansInfo.entrySet()) {
+                try {
+                    if (!processed.containsKey(e.getKey())) {
+                        generator.generateSerializer(e.getValue());
                     }
+                } catch (Exception e1) {
+                    messager.printMessage(Diagnostic.Kind.WARNING,
+                            "Error during generation for " + e.getValue().getSimpleName());
+                    if (DEBUG) {
+                        e1.printStackTrace();
+                    }
+                    Utils.warning(messager, null, e1.getMessage());
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
-            warning(null, e.getMessage());
+            Utils.warning(messager, null, e.getMessage());
         }
         return true;
     }
@@ -87,15 +87,6 @@ public class JacksonProcessor extends AbstractProcessor {
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
-    }
-
-    private void warning(Element e, String msg, Object... args) {
-        if (msg != null) {
-            messager.printMessage(
-                    Diagnostic.Kind.WARNING,
-                    String.format(msg, args),
-                    e);
-        }
     }
 
 }
