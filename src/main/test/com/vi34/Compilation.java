@@ -32,7 +32,6 @@ public class Compilation {
                 Arrays.asList(targetFile));
         manager.setLocation(StandardLocation.CLASS_OUTPUT,
                 Arrays.asList(targetFile));
-        //Arrays.asList(new File("./src/main/test/generated")));
         JavaCompiler.CompilationTask task = compiler.getTask(null, manager, diagnostics, null, null, sources);
         task.setProcessors(Arrays.asList(new JacksonProcessor()));
         System.out.println("Compilation succesful: " + task.call());

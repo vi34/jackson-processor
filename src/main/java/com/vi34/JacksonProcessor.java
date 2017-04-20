@@ -31,6 +31,7 @@ import java.util.Set;
 public class JacksonProcessor extends AbstractProcessor {
 
     private static final boolean DEBUG = true;
+    public static final String DEFAULT_SCHEMA_DIR = "./json-schema";
     private Types typeUtils;
     private Elements elementUtils;
     private Filer filer;
@@ -64,7 +65,8 @@ public class JacksonProcessor extends AbstractProcessor {
                 beansInfo.put(beanDescription.getTypeName(), beanDescription);
             }
             SerializerGenerator generator = new SerializerGenerator(filer, messager, processed, beansInfo);
-            SchemaGenerator schemaGenerator = new SchemaGenerator(filer);
+            String schema_dir = processingEnv.getOptions().getOrDefault("SCHEMA_DIR", DEFAULT_SCHEMA_DIR);
+            SchemaGenerator schemaGenerator = new SchemaGenerator(schema_dir);
             for (Map.Entry<String, BeanDescription> e : beansInfo.entrySet()) {
                 try {
                     if (!processed.containsKey(e.getKey())) {
