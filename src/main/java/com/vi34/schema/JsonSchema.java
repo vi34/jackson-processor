@@ -45,6 +45,10 @@ public class JsonSchema {
     @Getter
     List<String> required;
 
+    @Getter
+    @Setter
+    JsonSchema additionalProperties;
+
     public void addProp(String name, JsonSchema schema) {
         properties.put(name, schema);
         required.add(name);

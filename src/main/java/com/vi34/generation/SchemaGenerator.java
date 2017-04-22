@@ -59,7 +59,9 @@ public class SchemaGenerator {
         } else if (property instanceof EnumProp) {
             schema = new EnumSchema();
         } else if (property instanceof MapProp) {
-            schema = new EnumSchema(); //fixme
+            schema = new JsonSchema();
+            schema.setType(JsonType.OBJECT);
+            schema.setAdditionalProperties(createPropSchema(((MapProp) property).getValue()));
         } else {
             schema = new JsonSchema();
             schema.set$ref(schemaFile(property.getTypeName()));

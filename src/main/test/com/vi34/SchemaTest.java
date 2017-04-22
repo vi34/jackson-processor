@@ -9,10 +9,7 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import com.vi34.raw.Array;
-import com.vi34.raw.Complex;
-import com.vi34.raw.Enums;
-import com.vi34.raw.Pojo;
+import com.vi34.raw.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,6 +19,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static com.vi34.Compilation.load;
 
@@ -84,5 +84,36 @@ public class SchemaTest {
         if (!re.isSuccess()) System.out.println(re);
         Assert.assertTrue(re.isSuccess());
     }
+
+
+    @Test
+    public void maps() throws IOException, ProcessingException {
+        Assert.assertTrue(load(Maps.class,  mapper));
+
+        JsonSchema jsonSchema = schemaFactory.getJsonSchema(Paths.get(schemaDir, "Maps-schema.json").toUri().toString());
+
+        Map<String, String> props = new HashMap<>();
+        props.put("a", "1");
+        props.put("b", "2");
+        props.put("c", "3");
+
+        HashMap<Integer, String> h = new HashMap<>();
+        h.put(1, "abc");
+        h.put(2, "cde");
+        h.put(3, "efg");
+
+        TreeMap<String, Pojo> t = new TreeMap<>();
+        t.put("pojo", new Pojo(1, 0.4));
+        t.put("pojo2", new Pojo(2, 0.6));
+
+        Maps maps = new Maps(props, h, t);
+        JsonNode jsonNode = mapper.valueToTree(maps);
+
+
+        ProcessingReport re = jsonSchema.validate(jsonNode);
+        if (!re.isSuccess()) System.out.println(re);
+        Assert.assertTrue(re.isSuccess());
+    }
+
 
 }

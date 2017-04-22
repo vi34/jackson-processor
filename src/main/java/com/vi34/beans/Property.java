@@ -70,15 +70,5 @@ public class Property {
             default:
                 throw new GenerationException("Couldn't find generator method for " + this);
         }
-
-/*
-
-        switch (getTypeName()) {
-            case "boolean":case "java.lang.Boolean":
-            case "char":case "java.lang.Character":case "java.lang.String": return "writeString";
-        }
-*/
-
-
     }
 }

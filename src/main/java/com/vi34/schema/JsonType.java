@@ -10,11 +10,7 @@ public enum JsonType {
     NUMBER("number"),
     INTEGER("integer"),
     BOOLEAN("boolean"),
-    NULL("null"),
-    ANY("any"),
-
-    UNKNOWN("unknown"),
-    UNION("union");
+    NULL("null");
 
     private String type;
 

@@ -21,4 +21,11 @@ public class ContainerProp extends Property {
         elem.accessor = Function.identity();
         jsonType = JsonType.ARRAY;
     }
+
+    ContainerProp(TypeMirror type, Property elem) {
+        super(type);
+        this.elem = elem;
+        elem.accessor = Function.identity();
+        jsonType = JsonType.ARRAY;
+    }
 }

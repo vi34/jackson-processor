@@ -15,37 +15,36 @@ import static javax.lang.model.type.TypeKind.*;
  */
 public class PropertyFabric {
 
-    Property construct(TypeMirror type) {
-        Property property;
-        if (isEnum(type)) {
-            property = new EnumProp(type);
-        } else {
-            property = new Property(type);
-        }
-        fillWithType(type, property);
-        return property;
-    }
-
     Property construct(VariableElement member) {
         Property property;
         TypeMirror type = member.asType();
+        property = constructProp(member, type);
+        return property;
+    }
+
+    private Property constructProp(VariableElement member, TypeMirror type) {
+        Property property;
         if (type.getKind().equals(ARRAY) || iterable(type)) {
             type = iterable(type) ? ((Type.ClassType) type).getTypeArguments().get(0) : ((ArrayType) type).getComponentType();
-            Property propertyEl = construct(type);
+            Property propertyEl = constructProp(null, type);
             fillWithType(type, propertyEl);
-            property = new ContainerProp(member, propertyEl);
+            property = member != null
+                    ? new ContainerProp(member, propertyEl)
+                    : new ContainerProp(type, propertyEl);
         } else if (isMap(type)) {
             TypeMirror keyType = ((Type.ClassType) type).getTypeArguments().get(0);
             TypeMirror valueType = ((Type.ClassType) type).getTypeArguments().get(1);
             MapProp.KeyProp keyProp = new MapProp.KeyProp(keyType);
             fillWithType(keyType, keyProp);
-            Property valueProp = construct(valueType);
-            property = new MapProp(member, keyProp, valueProp);
+            Property valueProp = constructProp(null, valueType);
+            property = member != null
+                    ? new MapProp(member, keyProp, valueProp)
+                    : new MapProp(type, keyProp, valueProp);
         } else if (isEnum(type)) {
-            property = new EnumProp(member);
+            property = member != null ? new EnumProp(member) : new EnumProp(type);
             property.setSimple(true);
         } else {
-            property = new Property(member);
+            property = member != null ? new Property(member) : new Property(type);
             fillWithType(type, property);
         }
         return property;

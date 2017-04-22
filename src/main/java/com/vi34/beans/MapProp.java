@@ -23,6 +23,14 @@ public class MapProp extends Property {
         jsonType = JsonType.OBJECT;
     }
 
+    MapProp(TypeMirror typeMirror, KeyProp key, Property value) {
+        super(typeMirror);
+        this.key = key;
+        this.value = value;
+        value.accessor = (var) -> var + ".getValue()";
+        jsonType = JsonType.OBJECT;
+    }
+
     public static class KeyProp extends Property {
 
         private final boolean primitive;
