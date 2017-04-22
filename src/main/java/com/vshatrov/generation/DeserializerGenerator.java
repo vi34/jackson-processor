@@ -1,0 +1,448 @@
+package com.vshatrov.generation;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.io.SerializedString;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.deser.ResolvableDeserializer;
+import com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer;
+import com.fasterxml.jackson.databind.deser.std.PrimitiveArrayDeserializers;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.type.ArrayType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.squareup.javapoet.*;
+import com.sun.tools.doclets.internal.toolkit.builders.MethodBuilder;
+import com.vshatrov.GenerationException;
+import com.vshatrov.beans.BeanDescription;
+import com.vshatrov.beans.properties.ArrayProp;
+import com.vshatrov.beans.properties.ContainerProp;
+import com.vshatrov.beans.properties.EnumProp;
+import com.vshatrov.beans.properties.Property;
+
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.lang.model.element.Modifier;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+/**
+ * @author Viktor Shatrov.
+ */
+public class DeserializerGenerator {
+
+    //TODO: handle All-args constructors
+
+    public static final String PACKAGE_MODIFIER = "";
+    public static final String SUFFIX = "Deserializer";
+    public static final String MAPPING_VAR = "fullFieldToIndex";
+    private Messager messager;
+
+    private Filer filer;
+    private Map<String, DeserializationInfo> processed;
+    private Map<String, BeanDescription> beansInfo;
+
+    private DeserializationInfo currentDeserInfo;
+
+
+    public DeserializerGenerator(Filer filer, Messager messager, Map<String, DeserializationInfo> processed, Map<String, BeanDescription> beansInfo) {
+        this.filer = filer;
+        this.processed = processed;
+        this.beansInfo = beansInfo;
+        this.messager = messager;
+    }
+
+
+    public DeserializationInfo generateDeserializer(BeanDescription unit) throws IOException, GenerationException {
+        currentDeserInfo = new DeserializationInfo(unit);
+        ClassName stdDeserializer = ClassName.get(StdDeserializer.class);
+        ClassName beanClass = ClassName.get(unit.getPackageName(), unit.getSimpleName());
+
+        MethodSpec deserialize = MethodSpec.methodBuilder("deserialize")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(JsonParser.class, "parser")
+                .addParameter(DeserializationContext.class, "ctxt")
+                .returns(beanClass)
+                .addException(IOException.class)
+                .addStatement("return $L(parser, ctxt)", readMethodName(unit.getSimpleName()))
+                .build();
+
+        TypeSpec.Builder deserializerBuilder = TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .superclass(ParameterizedTypeName.get(stdDeserializer, beanClass))
+                .addSuperinterface(ClassName.get(ResolvableDeserializer.class))
+                .addMethod(deserialize);
+
+        addConstructors(deserializerBuilder, beanClass);
+
+        MethodSpec deserImpl = addDeserializeImplementation(beanClass);
+        deserializerBuilder.addMethod(deserImpl);
+
+        generateConstants(deserializerBuilder);
+        addHelperMethods(deserializerBuilder);
+
+        addResolve(deserializerBuilder);
+
+        currentDeserInfo.getReadMethods().values().forEach(deserializerBuilder::addMethod);
+
+        JavaFile javaFile = JavaFile.builder(unit.getPackageName() + PACKAGE_MODIFIER, deserializerBuilder.build())
+                .indent("    ")
+                .build();
+
+        javaFile.writeTo(filer);
+        currentDeserInfo.setDeserializeMethod(deserImpl);
+        processed.put(unit.getTypeName(), currentDeserInfo);
+        return currentDeserInfo;
+    }
+
+    private void addHelperMethods(TypeSpec.Builder deserializerBuilder) {
+        MethodSpec verify = MethodSpec.methodBuilder("verifyCurrent")
+                .addModifiers(Modifier.PRIVATE)
+                .returns(void.class)
+                .addParameter(JsonParser.class, "parser")
+                .addParameter(JsonToken.class, "expToken")
+                .addException(IOException.class)
+                .addCode("  if (parser.getCurrentToken() != expToken) {\n" +
+                        "            reportIllegal(parser, expToken);\n" +
+                        "        }\n")
+                .build();
+
+        MethodSpec report = MethodSpec.methodBuilder("reportIllegal")
+                .addModifiers(Modifier.PRIVATE)
+                .returns(void.class)
+                .addParameter(JsonParser.class, "parser")
+                .addParameter(JsonToken.class, "expToken")
+                .addException(IOException.class)
+                .addCode(" JsonToken curr = parser.getCurrentToken();\n" +
+                        "        String msg = \"Expected token \"+expToken+\"; got \"+curr;\n" +
+                        "        if (curr == JsonToken.FIELD_NAME) {\n" +
+                        "            msg += \" (current field name '\"+parser.getCurrentName()+\"')\";\n" +
+                        "        }\n" +
+                        "        msg += \", location: \"+parser.getTokenLocation();\n" +
+                        "        throw new IllegalStateException(msg);\n")
+                .build();
+        deserializerBuilder.addMethod(verify);
+        deserializerBuilder.addMethod(report);
+
+    }
+
+    private void generateConstants(TypeSpec.Builder deserializerBuilder) {
+        ParameterizedTypeName mapType = ParameterizedTypeName.get(ClassName.get(HashMap.class), ClassName.get(String.class), ClassName.get(Integer.class));
+        FieldSpec fieldMapping = FieldSpec
+                .builder(mapType, MAPPING_VAR)
+                .addModifiers(Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
+                .initializer("new $T()", mapType)
+                .build();
+
+        deserializerBuilder.addField(fieldMapping);
+        CodeBlock.Builder mappingBuilder = CodeBlock.builder();
+        for (int i = 0; i < currentDeserInfo.getUnit().getProps().size(); i++) {
+            Property prop = currentDeserInfo.getUnit().getProps().get(i);
+
+            FieldSpec fullFieldConst = FieldSpec
+                    .builder(String.class, convertToStringConstName(prop.getName()))
+                    .addModifiers(Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
+                    .initializer("$S", prop.getName())
+                    .build();
+
+            FieldSpec indexFieldConst = FieldSpec
+                    .builder(int.class, convertToIndexConstName(prop.getName()))
+                    .addModifiers(Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
+                    .initializer("$L", i + 1)
+                    .build();
+
+            FieldSpec fieldConst = FieldSpec
+                    .builder(SerializedString.class, convertToSerializedConstName(prop.getName()))
+                    .addModifiers(Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
+                    .initializer("new SerializedString($L)", convertToStringConstName(prop.getName()))
+                    .build();
+
+            mappingBuilder.addStatement("$L.put($L, $L)", MAPPING_VAR, fullFieldConst.name, indexFieldConst.name);
+
+            deserializerBuilder
+                    .addField(fullFieldConst)
+                    .addField(indexFieldConst)
+                    .addField(fieldConst);
+        }
+        deserializerBuilder.addStaticBlock(mappingBuilder.build());
+    }
+
+    private MethodSpec addDeserializeImplementation(ClassName beanClass) throws IOException, GenerationException {
+        MethodSpec.Builder deserializeImpl = MethodSpec.methodBuilder(readMethodName(currentDeserInfo.getUnit().getSimpleName()))
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(JsonParser.class, "parser")
+                .addParameter(DeserializationContext.class, "ctxt")
+                .returns(beanClass)
+                .addException(IOException.class);
+
+        String varName = "_" + currentDeserInfo.getUnit().getSimpleName().toLowerCase();
+        deserializeImpl.addStatement("$1T $2L = new $1T()", beanClass, varName);
+
+        currentDeserInfo.getPrimitiveProps().forEach((name, prop) -> {
+            deserializeImpl.addStatement("boolean $L = false", presentFlag(name));
+        });
+
+        genFastVersion(deserializeImpl, varName, 0);
+
+        genCommonParsing(deserializeImpl, varName);
+
+        deserializeImpl.addStatement("verifyCurrent(parser, JsonToken.END_OBJECT)");
+
+        currentDeserInfo.getUnit().getProps().forEach(prop -> {
+            String condition;
+            String accessor;
+            if (prop.getTName().isPrimitive()) {
+                accessor = presentFlag(prop.getName());
+                condition = "!" + accessor;
+            } else {
+                accessor = prop.getAccessor(varName);
+                condition = accessor + " == null";
+            }
+
+            deserializeImpl.addStatement("if ($L) throw new IllegalStateException(\"Missing field: \" + $L)",
+                    condition, convertToSerializedConstName(prop.getName()));
+        });
+
+        deserializeImpl.addStatement("return $L", varName);
+        return deserializeImpl.build();
+    }
+
+    private void genCommonParsing(MethodSpec.Builder deserializeImpl, String varName) throws GenerationException {
+        deserializeImpl
+                .beginControlFlow("for (; parser.getCurrentToken() == $T.FIELD_NAME; parser.nextToken())", ClassName.get(JsonToken.class))
+                .addStatement("String field = parser.getCurrentName()")
+                .addStatement("Integer I = fullFieldToIndex.get(field)")
+                .beginControlFlow("if (I != null)")
+                .beginControlFlow("switch (I)");
+
+        for (Property property : currentDeserInfo.getUnit().getProps()) {
+            deserializeImpl.addCode("case $L:\n$>", convertToIndexConstName(property.getName()));
+            deserializeImpl.addStatement("parser.nextToken()");
+            String propVarName = addPropertyReading(deserializeImpl, property);
+            assignObjectsProperty(deserializeImpl, varName, property, propVarName);
+            deserializeImpl.addStatement("continue$<");
+
+        }
+
+        deserializeImpl
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("throw new IllegalStateException(\"Unexpected field '\"+field+\"'\")")
+                .endControlFlow();
+    }
+
+
+    private void genFastVersion(MethodSpec.Builder deserializeImpl, String varName, int propIndex) throws GenerationException {
+        Property property = currentDeserInfo.getUnit().getProps().get(propIndex);
+
+        deserializeImpl
+                .beginControlFlow("if (parser.nextFieldName($L))", convertToSerializedConstName(property.getName()));
+
+        deserializeImpl.addStatement("parser.nextToken()");
+        String propVarName = addPropertyReading(deserializeImpl, property);
+        assignObjectsProperty(deserializeImpl, varName, property, propVarName);
+
+        if (propIndex + 1 < currentDeserInfo.getUnit().getProps().size()) {
+            genFastVersion(deserializeImpl, varName, propIndex + 1);
+        } else {
+            deserializeImpl
+                    .addStatement("parser.nextToken()")
+                    .addStatement("verifyCurrent(parser, $T.END_OBJECT)", ClassName.get(JsonToken.class))
+                    .addStatement("return $L", varName);
+        }
+
+        deserializeImpl.endControlFlow();
+    }
+
+    private String addPropertyReading(MethodSpec.Builder readMethod, Property property) throws GenerationException {
+
+        String propVarName = property.getName() + "_read";
+
+        if (property instanceof EnumProp) {
+            readMethod.addStatement("$1T $2L = $1T.valueOf($3L)", property.getTName(),
+                    propVarName, property.parseMethod("parser"));
+        } else if (property.isSimple()) {
+            readMethod.addStatement("$T $L = $L", property.getTName(), propVarName, property.parseMethod("parser"));
+        } else if (property instanceof ContainerProp) {
+            MethodSpec arrayRead = containerRead((ContainerProp) property);
+            readMethod.addStatement("$T $L = $N(parser, ctxt)", property.getTName(), propVarName, arrayRead);
+            currentDeserInfo.getReadMethods().put(arrayRead.name, arrayRead);
+        } else {
+            readMethod.addStatement("$1T $2L = parser.currentToken() == JsonToken.VALUE_NULL " +
+                            "? null" +
+                            ": ($1T) $3L.deserialize(parser, ctxt)", property.getTName(),
+
+                    propVarName, deserializerName(property));
+            currentDeserInfo.getProvided().add(property);
+        }
+
+        return propVarName;
+    }
+
+    private void assignObjectsProperty(MethodSpec.Builder readMethod, String objVarName, Property property, String propVarName) {
+        if (property.getSetter() == null) {
+            readMethod.addStatement("$L = $L", property.getAccessor(objVarName), propVarName);
+        } else {
+            readMethod.addStatement("$L.$L($L)", objVarName, property.getSetter(), propVarName);
+        }
+
+        if (property.getTName().isPrimitive()) {
+            readMethod.addStatement("$L = true", presentFlag(property.getName()));
+        }
+    }
+
+    private MethodSpec containerRead(ContainerProp property) throws GenerationException {
+        MethodSpec.Builder builder = MethodSpec
+                .methodBuilder("read_" + property.getName())
+                .addModifiers(Modifier.PRIVATE)
+                .returns(property.getTName())
+                .addParameter(JsonParser.class, "parser")
+                .addParameter(DeserializationContext.class, "ctxt")
+                .addException(IOException.class)
+                .beginControlFlow("if (parser.currentToken() != JsonToken.START_ARRAY)")
+                .addStatement("reportIllegal(parser, JsonToken.START_ARRAY)")
+                .endControlFlow();
+
+        if (property instanceof ArrayProp) {
+           addArrayReading(builder, (ArrayProp) property);
+        } else {
+            // TODO: add other collections
+            builder.addStatement("$1T arr = new $2T<>()", property.getTName(), ClassName.get(ArrayList.class));
+            builder.beginControlFlow("while (parser.nextToken() != JsonToken.END_ARRAY)");
+            String propVarName = addPropertyReading(builder, property.getElem());
+            builder
+                    .addStatement("arr.add($L)", propVarName)
+                    .endControlFlow()
+                    .addStatement("verifyCurrent(parser, JsonToken.END_ARRAY)")
+                    .addStatement("return arr");
+        }
+
+        return builder.build();
+    }
+
+    private void addArrayReading(MethodSpec.Builder builder, ArrayProp property) {
+        //TODO: StringArrayDeserializer
+        currentDeserInfo.getProvidedArrays().add(property);
+
+        builder.addStatement("$1T arr = ($1T) $2L.deserialize(parser, ctxt)", property.getTName(), deserializerName(property))
+                .addStatement("return arr");
+    }
+
+
+    private void addConstructors(TypeSpec.Builder serializerBuilder ,ClassName beanClass) {
+        ParameterizedTypeName classBean = ParameterizedTypeName.get(ClassName.get(Class.class), beanClass);
+        MethodSpec constrOneArg = MethodSpec.constructorBuilder()
+                .addParameter(ParameterSpec.builder(classBean, "t").build())
+                .addStatement("super(t)")
+                .addModifiers(Modifier.PROTECTED)
+                .build();
+
+        MethodSpec constrDef = MethodSpec.constructorBuilder()
+                .addStatement("this(null)")
+                .addModifiers(Modifier.PUBLIC)
+                .build();
+
+        serializerBuilder
+                .addMethod(constrOneArg)
+                .addMethod(constrDef);
+    }
+
+
+    private void addResolve(TypeSpec.Builder deserializerBuilder) {
+        MethodSpec.Builder resolve = MethodSpec.methodBuilder("resolve")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(DeserializationContext.class, "ctxt")
+                .returns(void.class)
+                .addException(JsonMappingException.class)
+                .addStatement("$T javaType", ClassName.get(JavaType.class))
+                .addStatement("$1T typeFactory = $1T.defaultInstance()", ClassName.get(TypeFactory.class));
+
+        ClassName deserClass = ClassName.get(JsonDeserializer.class);
+        currentDeserInfo.getProvided().forEach((prop) -> {
+            resolve.addStatement("javaType = typeFactory.constructType(new $T<$L>(){})",
+                        ClassName.get(TypeReference.class), prop.getTName()); //TODO check map resolving problems
+            resolve.addStatement("$L = ctxt.findNonContextualValueDeserializer(javaType)", deserializerName(prop));
+
+            ParameterizedTypeName deserType = ParameterizedTypeName.get(deserClass, TypeName.get(Object.class));
+            FieldSpec deserializer = FieldSpec.builder(deserType, deserializerName(prop))
+                    .addModifiers(Modifier.PRIVATE)
+                    .build();
+            deserializerBuilder.addField(deserializer);
+        });
+
+        resolve.addStatement("$T arrayType", ClassName.get(ArrayType.class));
+
+        currentDeserInfo.getProvidedArrays().forEach(arrayProp ->{
+            TypeName deserType;
+            if (arrayProp.isPrimitiveArray()) {
+                deserType = ParameterizedTypeName.get(deserClass, arrayProp.getTName());
+                resolve.addStatement("$L = (JsonDeserializer<$T>) $T.forType($T.class)",
+                        deserializerName(arrayProp), arrayProp.getTName(), ClassName.get(PrimitiveArrayDeserializers.class), arrayProp.getElem().getTName());
+            } else {
+                deserType = TypeName.get(ObjectArrayDeserializer.class);
+                //TODO: think about recursive links
+                resolve.addStatement("arrayType = typeFactory.constructArrayType($L.class)", arrayProp.getElem().getTName());
+
+                TypeSpec typeSpec = TypeSpec.anonymousClassBuilder("")
+                        .addSuperinterface(ParameterizedTypeName.get(JsonDeserializer.class, Object.class))
+                        .addMethod(MethodSpec.methodBuilder("deserialize")
+                                .addParameter(JsonParser.class, "parser")
+                                .addParameter(DeserializationContext.class, "ctxt")
+                                .addException(IOException.class)
+                                .returns(arrayProp.getElem().getTName())
+                                .addModifiers(Modifier.PUBLIC)
+                                .addStatement("return $T.valueOf(parser.getText())", arrayProp.getElem().getTName())
+                                .build())
+                        .build();
+
+                resolve.addStatement("$L = new $T(arrayType, $L, null)",
+                        deserializerName(arrayProp), TypeName.get(ObjectArrayDeserializer.class),
+                        arrayProp.getElem() instanceof EnumProp
+                                ? typeSpec
+                                : deserializerName(arrayProp.getElem()));
+            }
+
+            FieldSpec deserializer = FieldSpec.builder(deserType, deserializerName(arrayProp))
+                    .addModifiers(Modifier.PRIVATE)
+                    .build();
+            deserializerBuilder.addField(deserializer);
+        });
+
+        deserializerBuilder.addMethod(resolve.build());
+
+
+    }
+
+    private String presentFlag(String name) {
+        return "have_" + name;
+    }
+
+    private String deserializerName(Property property) {
+        if (property instanceof ArrayProp) {
+            return ((ArrayProp) property).getElem().getName().toLowerCase() + "_arrayDeserializer";
+        }
+        return property.getName().toLowerCase() + "_deserializer";
+    }
+
+    private String readMethodName(String name) {
+        return "read_"+name.toLowerCase();
+    }
+
+    private String convertToStringConstName(String name) {
+        return "FULL_FIELD_" + name.toUpperCase();
+    }
+
+    private String convertToIndexConstName(String name) {
+        return "IX_FULL_FIELD_" + name.toUpperCase();
+    }
+
+    private String convertToSerializedConstName(String name) {
+        return "FIELD_" + name.toUpperCase();
+    }
+
+}

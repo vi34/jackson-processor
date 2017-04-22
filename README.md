@@ -9,7 +9,6 @@ for _@GenerateClasses_ annotated classes.
 
 
 ##### Benchmarks
-Benchmarks located in separate test-project.
 
 
 
