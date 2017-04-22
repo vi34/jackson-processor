@@ -1,12 +1,14 @@
 package com.vi34.bench;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.vi34.deserializers.MediaItemDeserializer;
 import com.vi34.deserializers.MediaItemDeserializerNode;
+import com.vi34.deserializers.PojoDeserializer;
 import com.vi34.entities.Pojo;
 import com.vi34.entities.media.MediaItem;
 import org.openjdk.jmh.annotations.*;
@@ -40,15 +42,16 @@ public class Deserialization {
     @Setup(Level.Trial)
     public void setup() {
         mapper = new ObjectMapper(factory);
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(MediaItem.class, new MediaItemDeserializer());
+        SimpleModule handModule = new SimpleModule();
+        handModule.addDeserializer(MediaItem.class, new MediaItemDeserializer());
+        handModule.addDeserializer(Pojo.class, new PojoDeserializer());
         SimpleModule procModule = new SimpleModule();
         procModule.addDeserializer(MediaItem.class, new MediaItemDeserializerNode());
 
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
                 break;
-            case "custom": mapper.registerModule(module); break;
+            case "custom": mapper.registerModule(handModule); break;
             case "processor": mapper.registerModule(procModule); break;
             default:
         }
@@ -56,13 +59,13 @@ public class Deserialization {
         mediaItem = MediaItem.buildItem();
     }
 
-   /* @Benchmark
+    @Benchmark
     @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public String pojo() throws JsonProcessingException {
         return mapper.writeValueAsString(pojo);
-    }*/
+    }
 
    /* @Benchmark
     @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})

@@ -98,81 +98,39 @@ public class PojoDeserializer extends StdDeserializer<Pojo> {
         for (; parser.getCurrentToken() == JsonToken.FIELD_NAME; parser.nextToken()) {
             String field = parser.getCurrentName();
             // read value token (or START_ARRAY)
-            parser.nextToken();
             Integer I = fullFieldToIndex.get(field);
             if (I != null) {
                 switch (I) {
                     case IX_FULL_FIELD_I1:
-                        pojo.setI1(parser.getIntValue());
+                        pojo.setI1(parser.nextIntValue(-1));
                         haveI1 = true;
                         continue;
                     case IX_FULL_FIELD_STR:
-                        pojo.setStr(parser.getText());
+                        pojo.setStr(parser.nextTextValue());
                         continue;
                     case IX_FULL_FIELD_ILIST:
                         pojo.setList(readInts(parser, ctxt));
                         continue;
                     case IX_FULL_FIELD_BOOL:
-                        pojo.setBool(parser.getBooleanValue());
+                        pojo.setBool(parser.nextBooleanValue());
                         haveBool = true;
                         continue;
                     case IX_FULL_FIELD_ADOUBLE:
+                        parser.nextToken();
                         pojo.setADouble(_parseDouble(parser, ctxt));
                         continue;
                     case IX_FULL_FIELD_PRINT:
-                        pojo.setPrInt(parser.getIntValue());
+                        pojo.setPrInt(parser.nextIntValue(-1));
                         havePrint = true;
                         continue;
                     case IX_FULL_FIELD_ACHAR:
-                        pojo.setAChar(parser.getText().charAt(0));
+                        pojo.setAChar(parser.nextTextValue().charAt(0));
                         haveAchar = true;
                         continue;
                 }
             }
             throw new IllegalStateException("Unexpected field '"+field+"'");
         }
-
-        /*
-        for (; parser.getCurrentToken() == JsonToken.FIELD_NAME; parser.nextToken()) {
-            String field = parser.getCurrentName();
-            // read value token (or START_ARRAY)
-            parser.nextToken();
-            Integer I = fullFieldToIndex.get(field);
-            if (I != null) {
-                switch (I) {
-                    case FIELD_IX_URI:
-                        image.uri = parser.getText();
-                        continue;
-                    case FIELD_IX_TITLE:
-                        image.title = parser.getText();
-                        continue;
-                    case FIELD_IX_WIDTH:
-                        image.width = parser.getIntValue();
-                        haveWidth = true;
-                        continue;
-                    case FIELD_IX_HEIGHT:
-                        image.height = parser.getIntValue();
-                        haveHeight = true;
-                        continue;
-                    case FIELD_IX_SIZE:
-                        image.size = Size.valueOf(parser.getText());
-                        continue;
-                }
-            }
-            throw new IllegalStateException("Unexpected field '"+field+"'");
-        }
-         */
-
-
-         /*
-    @JsonProperty("i1") int i1;
-    @JsonProperty("Str") String str;
-    @JsonProperty("Ilist") List<Integer> list;
-    boolean bool;
-    Double aDouble;
-    private int prInt;
-    char aChar;
-     */
 
         verifyCurrent(parser, JsonToken.END_OBJECT);
 

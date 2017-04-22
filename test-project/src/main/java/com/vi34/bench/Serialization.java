@@ -42,10 +42,10 @@ public class Serialization {
     @Setup(Level.Trial)
     public void setup() {
         mapper = new ObjectMapper(factory);
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(Pojo.class, new PojoSerializer());
-        module.addSerializer(Complex.class, new ComplexSerializer());
-        module.addSerializer(MediaItem.class, new MediaItemSerializer());
+        SimpleModule handModule = new SimpleModule();
+        handModule.addSerializer(Pojo.class, new PojoSerializer());
+        handModule.addSerializer(Complex.class, new ComplexSerializer());
+        handModule.addSerializer(MediaItem.class, new MediaItemSerializer());
         SimpleModule procModule = new SimpleModule();
         procModule.addSerializer(MediaItem.class, new com.vi34.entities.media.MediaItemSerializer());
         procModule.addSerializer(Complex.class, new com.vi34.entities.ComplexSerializer());
@@ -53,7 +53,7 @@ public class Serialization {
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
                 break;
-            case "handWritten": mapper.registerModule(module); break;
+            case "handWritten": mapper.registerModule(handModule); break;
             case "processor": mapper.registerModule(procModule); break;
             default: // reflection
         }
