@@ -14,7 +14,9 @@ import java.util.Map;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
+@GenerateClasses
 public class ComplexStructures {
     public List<List<Integer>> lInts;
-    //public Map<List<Integer>, List<String>> listListMap;
+    public Map<List<Integer>, List<String>> listListMap;
+    public Map<String, Map<Integer, String>> stringMapMap;
 }

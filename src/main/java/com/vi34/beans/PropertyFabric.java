@@ -25,9 +25,9 @@ public class PropertyFabric {
     private Property constructProp(VariableElement member, TypeMirror type) {
         Property property;
         if (type.getKind().equals(ARRAY) || iterable(type)) {
-            type = iterable(type) ? ((Type.ClassType) type).getTypeArguments().get(0) : ((ArrayType) type).getComponentType();
-            Property propertyEl = constructProp(null, type);
-            fillWithType(type, propertyEl);
+            TypeMirror elemType = iterable(type) ? ((Type.ClassType) type).getTypeArguments().get(0) : ((ArrayType) type).getComponentType();
+            Property propertyEl = constructProp(null, elemType);
+            fillWithType(elemType, propertyEl);
             property = member != null
                     ? new ContainerProp(member, propertyEl)
                     : new ContainerProp(type, propertyEl);

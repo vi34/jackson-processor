@@ -168,9 +168,42 @@ public class SerializationTest {
         check(val, Maps.class);
     }
 
+
+
+    // not works with standard jackson deserializer
+   /* @Test
+    public void complex_generic_structures() throws IOException{
+        Assert.assertTrue(load(ComplexStructures.class, mapper));
+
+        List<List<Integer>> llints = Arrays.asList(Arrays.asList(1,23,4)
+                                            , Arrays.asList(23,1234,5,5345)
+                                            , Arrays.asList(1,23,4));
+
+        Map<List<Integer>, List<String>> listListMap = new HashMap<>();
+        listListMap.put(llints.get(0), Arrays.asList("as", "bs", "foo"));
+        listListMap.put(llints.get(1), Arrays.asList("one", "two", "three", "four", "five"));
+        listListMap.put(llints.get(2), Arrays.asList("one", "two", "threefife"));
+
+        Map<String, Map<Integer, String>> stringMapMap = new TreeMap<>();
+        Map<Integer, String> m1 = new HashMap<>();
+        Map<Integer, String> m2 = new HashMap<>();
+
+        stringMapMap.put("one", m1);
+        stringMapMap.put("two", m2);
+
+        m1.put(1, "o");
+        m1.put(234, "234");
+        m1.put(12334, "1324");
+        m2.put(3, "3");
+        m2.put(4, "4");
+
+        ComplexStructures val = new ComplexStructures(llints, listListMap, stringMapMap);
+        check(val, ComplexStructures.class);
+    }*/
+
     /*@Test
     public void keyObjectMaps() throws IOException {
-        // Assert.assertTrue(load(Maps.class, mapper));
+         Assert.assertTrue(load(KeyObjectMap.class, mapper));
 
         Map<Pojo, Pojo> kobj = new HashMap<>();
         kobj.put(new Pojo(1, 3.2), new Pojo(2, 0.4));

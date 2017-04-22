@@ -183,7 +183,7 @@ public class SerializerGenerator {
         } else if (property instanceof MapProp) {
             MapProp.KeyProp key = ((MapProp) property).getKey();
             Property value = ((MapProp) property).getValue();
-            String var = "entry";
+            String var = property.getName() + "_entry";
             serialize
                     .beginControlFlow("if ($L != null)", property.getAccessor(varName))
                     .addStatement("gen.writeStartObject()")

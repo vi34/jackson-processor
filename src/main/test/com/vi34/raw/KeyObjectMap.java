@@ -14,6 +14,7 @@ import java.util.Map;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
+@GenerateClasses
 public class KeyObjectMap {
     public Map<Pojo, Pojo> keyObjects;
 }
