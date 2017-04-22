@@ -284,7 +284,7 @@ public class MediaItemDeserializer extends JsonDeserializer<MediaItem> {
         return image;
     }
 
-    private final void verifyCurrent(JsonParser parser, JsonToken expToken) throws IOException
+    private void verifyCurrent(JsonParser parser, JsonToken expToken) throws IOException
     {
         if (parser.getCurrentToken() != expToken) {
             reportIllegal(parser, expToken);

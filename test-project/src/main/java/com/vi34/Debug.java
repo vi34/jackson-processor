@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.io.Files;
+import com.vi34.deserializers.PojoDeserializer;
 import com.vi34.entities.Pojo;
 import com.vi34.entities.Complex;
 import com.vi34.serializers.ComplexSerializer;
@@ -34,15 +35,16 @@ public class Debug {
         SimpleModule module = new SimpleModule();
         module.addSerializer(Pojo.class, new PojoSerializer());
         module.addSerializer(Complex.class, new ComplexSerializer());
+        module.addDeserializer(Pojo.class, new PojoDeserializer());
         mapper.registerModule(module);
 
-        Complex complex = Complex.makeComplex(5);
+        Pojo pojo = Pojo.makePojo();
 
-        String s = mapper.writeValueAsString(complex);
+        String s = mapper.writeValueAsString(pojo);
         System.out.println(s);
 
-        Complex read = mapper.readValue(s, Complex.class);
-        System.out.println(read.equals(complex));
+        Pojo read = mapper.readValue(s, Pojo.class);
+        System.out.println(read.equals(pojo));
 
 
     }
