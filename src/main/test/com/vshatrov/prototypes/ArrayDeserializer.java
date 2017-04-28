@@ -238,6 +238,8 @@ public final class ArrayDeserializer extends StdDeserializer<Array> implements R
         return arr;
     }
 
+
+    // TODO: EnumDeserializer
     private Enums.En[] read_ens(JsonParser parser, DeserializationContext ctxt) throws IOException {
         if (parser.currentToken() != JsonToken.START_ARRAY) {
             reportIllegal(parser, JsonToken.START_ARRAY);

@@ -15,10 +15,8 @@ import com.squareup.javapoet.*;
 import com.sun.tools.doclets.internal.toolkit.builders.MethodBuilder;
 import com.vshatrov.GenerationException;
 import com.vshatrov.beans.BeanDescription;
-import com.vshatrov.beans.properties.ArrayProp;
-import com.vshatrov.beans.properties.ContainerProp;
-import com.vshatrov.beans.properties.EnumProp;
-import com.vshatrov.beans.properties.Property;
+import com.vshatrov.beans.properties.*;
+import com.vshatrov.utils.Utils;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -258,25 +256,31 @@ public class DeserializerGenerator {
         deserializeImpl.endControlFlow();
     }
 
+    /**
+     * @param readMethod - method to which property reading code will be pasted
+     * @param property to read
+     * @return name of variable in which given property is read.
+     */
     private String addPropertyReading(MethodSpec.Builder readMethod, Property property) throws GenerationException {
 
         String propVarName = property.getName() + "_read";
 
+        readMethod.addCode("$1T $2L = parser.currentToken() == JsonToken.VALUE_NULL ? null : ", property.getTName(), propVarName);
+
         if (property instanceof EnumProp) {
-            readMethod.addStatement("$1T $2L = $1T.valueOf($3L)", property.getTName(),
-                    propVarName, property.parseMethod("parser"));
+            readMethod.addStatement("$1T.valueOf($2L)", property.getTName(), property.parseMethod("parser"));
         } else if (property.isSimple()) {
-            readMethod.addStatement("$T $L = $L", property.getTName(), propVarName, property.parseMethod("parser"));
+            readMethod.addStatement("$L", property.parseMethod("parser"));
         } else if (property instanceof ContainerProp) {
             MethodSpec arrayRead = containerRead((ContainerProp) property);
-            readMethod.addStatement("$T $L = $N(parser, ctxt)", property.getTName(), propVarName, arrayRead);
+            readMethod.addStatement("$N(parser, ctxt)", arrayRead);
             currentDeserInfo.getReadMethods().put(arrayRead.name, arrayRead);
+        } else if (property instanceof MapProp) {
+            MethodSpec mapRead = mapRead((MapProp) property);
+            readMethod.addStatement("$N(parser, ctxt)", mapRead);
+            currentDeserInfo.getReadMethods().put(mapRead.name, mapRead);
         } else {
-            readMethod.addStatement("$1T $2L = parser.currentToken() == JsonToken.VALUE_NULL " +
-                            "? null" +
-                            ": ($1T) $3L.deserialize(parser, ctxt)", property.getTName(),
-
-                    propVarName, deserializerName(property));
+            readMethod.addStatement("($1T) $2L.deserialize(parser, ctxt)", property.getTName(), deserializerName(property));
             currentDeserInfo.getProvided().add(property);
         }
 
@@ -293,6 +297,44 @@ public class DeserializerGenerator {
         if (property.getTName().isPrimitive()) {
             readMethod.addStatement("$L = true", presentFlag(property.getName()));
         }
+    }
+
+    private MethodSpec mapRead(MapProp property) throws GenerationException {
+        MethodSpec.Builder builder = MethodSpec
+                .methodBuilder("read_" + property.getName())
+                .addModifiers(Modifier.PRIVATE)
+                .returns(property.getTName())
+                .addParameter(JsonParser.class, "parser")
+                .addParameter(DeserializationContext.class, "ctxt")
+                .addException(IOException.class)
+                .addStatement("verifyCurrent(parser, JsonToken.START_OBJECT)");
+
+        //fixme: here is assumption that if map class is not java.util.Map then it is not abstract
+        TypeName inst = Utils.erasure(property.getTypeName()).equals("java.util.Map")
+                ? ParameterizedTypeName.get(ClassName.get(HashMap.class), property.getKey().getTName(), property.getValue().getTName())
+                : property.getTName();
+
+        builder
+                .addStatement("$T res = new $T()", property.getTName(), inst)
+                .addStatement("String keyStr = parser.nextFieldName()")
+                .beginControlFlow(" for (; keyStr != null; keyStr = parser.nextFieldName())")
+                .addStatement("$T key = $L", property.getKey().getTName(), property.getKey().parseMethod("keyStr"))
+                .addStatement("JsonToken t = parser.nextToken()")
+                .addStatement("$T value", property.getValue().getTName())
+                .beginControlFlow("if (t == JsonToken.VALUE_NULL)")
+                .addStatement("value = null")
+                .nextControlFlow("else");
+
+        String var = addPropertyReading(builder, property.getValue());
+
+        builder
+                .addStatement("value = $L", var)
+                .endControlFlow()
+                .addStatement("res.put(key, value)")
+                .endControlFlow()
+                .addStatement("return res");
+
+        return builder.build();
     }
 
     private MethodSpec containerRead(ContainerProp property) throws GenerationException {

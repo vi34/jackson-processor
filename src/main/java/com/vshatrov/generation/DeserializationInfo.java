@@ -3,6 +3,7 @@ package com.vshatrov.generation;
 import com.squareup.javapoet.MethodSpec;
 import com.vshatrov.beans.BeanDescription;
 import com.vshatrov.beans.properties.ArrayProp;
+import com.vshatrov.beans.properties.MapProp;
 import com.vshatrov.beans.properties.Property;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,8 +36,6 @@ public class DeserializationInfo {
     public DeserializationInfo(BeanDescription unit) {
         this.typeName = unit.getTypeName();
         props = new HashMap<>();
-        provided = new HashSet<>();
-
         primitiveProps = unit.getProps().stream()
                 .filter(property -> property.getTName().isPrimitive())
                 .collect(Collectors.toMap(Property::getName, Function.identity()));

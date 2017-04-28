@@ -60,5 +60,11 @@ public class MapProp extends Property {
         public String genMethod(String varName) throws GenerationException {
             return modifyAccess(getAccessor(varName));
         }
+
+        //TODO: add String constructors for key-objects
+        @Override
+        public String parseMethod(String keyStr) throws GenerationException {
+            return typeName + ".valueOf(" + keyStr + ")";
+        }
     }
 }

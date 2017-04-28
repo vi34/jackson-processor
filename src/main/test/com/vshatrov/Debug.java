@@ -4,12 +4,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.io.Files;
+import com.vshatrov.prototypes.*;
 import com.vshatrov.prototypes.ArrayDeserializer;
-import com.vshatrov.prototypes.PrimitiveArrayDeser;
-import com.vshatrov.raw.Array;
-import com.vshatrov.raw.Enums;
-import com.vshatrov.raw.Pojo;
-import com.vshatrov.raw.PrimitiveArray;
+import com.vshatrov.prototypes.MapsDeserializer;
+import com.vshatrov.raw.*;
 import org.junit.Assert;
 
 import java.io.BufferedWriter;
@@ -17,6 +15,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static com.vshatrov.Compilation.loadDeserializer;
 
@@ -36,17 +37,28 @@ public class Debug {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(Array.class, new ArrayDeserializer());
+        module.addDeserializer(Maps.class, new MapsDeserializer());
         mapper.registerModule(module);
 
-        int[] ints = {1, 5, 10, 2, 9, 8, 1, 1, 3};
-        Pojo[] pojos = {new Pojo(1, 3.2), new Pojo(2, 5.2), new Pojo(3, 4.2)};
-        Enums.En[] ens = {Enums.En.ONE, Enums.En.TWO, Enums.En.THREE};
+        Map<String, String> props = new HashMap<>();
+        props.put("a", "1");
+        props.put("b", "2");
+        props.put("c", "3");
 
-        Array val = new Array(ints, pojos, Arrays.asList(1 ,2,5), Arrays.asList(new Pojo(5, 6)), ens);
+        HashMap<Integer, String> h = new HashMap<>();
+        h.put(1, "abc");
+        h.put(2, "cde");
+        h.put(3, "efg");
+
+        TreeMap<String, Pojo> t = new TreeMap<>();
+        t.put("pojo", new Pojo(1, 0.4));
+        t.put("pojo2", new Pojo(2, 0.6));
+
+        Maps val = new Maps(props, h, t);
+
 
         String json = mapper.writeValueAsString(val);
-        Array read = mapper.readValue(json, Array.class);
+        Maps read = mapper.readValue(json, Maps.class);
         Assert.assertEquals(val, read);
 
     }
