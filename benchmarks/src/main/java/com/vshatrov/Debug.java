@@ -10,6 +10,7 @@ import com.vshatrov.deserializers.ComplexDeserializer;
 import com.vshatrov.deserializers.PojoDeserializer;
 import com.vshatrov.entities.Pojo;
 import com.vshatrov.entities.Complex;
+import com.vshatrov.entities.media.*;
 import com.vshatrov.serializers.ComplexSerializer;
 import com.vshatrov.serializers.PojoSerializer;
 
@@ -36,8 +37,11 @@ public class Debug {
         SimpleModule module = new SimpleModule();
         module.addSerializer(Pojo.class, new PojoSerializer());
         module.addSerializer(Complex.class, new ComplexSerializer());
-        module.addDeserializer(Pojo.class, new PojoDeserializer());
-        module.addDeserializer(Complex.class, new ComplexDeserializer());
+        //module.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
+        //module.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
+        module.addDeserializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemDeserializer());
+        module.addDeserializer(Image.class, new ImageDeserializer());
+        module.addDeserializer(Media.class, new MediaDeserializer());
         mapper.registerModule(module);
 
       /*  Pojo pojo = Pojo.makePojo();
@@ -47,15 +51,22 @@ public class Debug {
 
         Pojo read = mapper.readValue(s, Pojo.class);
         System.out.println(read.equals(pojo));*/
-
-
+   /*
         Complex complex = Complex.makeComplex(3);
 
         String s = mapper.writeValueAsString(complex);
         System.out.println(s);
 
         Complex read = mapper.readValue(s, Complex.class);
-        System.out.println(read.equals(complex));
+        System.out.println(read.equals(complex));*/
+
+        MediaItem mediaItem = MediaItem.buildItem();
+
+        String s = mapper.writeValueAsString(mediaItem);
+        System.out.println(s);
+
+        MediaItem read = mapper.readValue(s, MediaItem.class);
+        System.out.println(read.equals(mediaItem));
 
     }
 }

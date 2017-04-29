@@ -33,7 +33,7 @@
                     <arguments>
                         <argument>-classpath</argument>
                         <classpath />
-                        <argument>com.vshatrov.bench.Serialization</argument>
+                        <argument>com.vshatrov.bench.Deserialization</argument>
                     </arguments>
                 </configuration>
             </plugin>

@@ -12,6 +12,9 @@ import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 /**
@@ -22,6 +25,13 @@ public class Compilation {
     public static final String TARGET_DIR = "./target/generated-sources/annotations/";
     public static File targetFile = new File(TARGET_DIR);
     static URLClassLoader classLoader;
+
+    public static void compileDir(Path dir) throws IOException {
+        compile(Files.list(dir)
+                .filter(Files::isRegularFile)
+                .map(Path::toFile)
+                .toArray(File[]::new));
+    }
 
     public static void compile(File... files) throws IOException {
         FileUtils.deleteDirectory(targetFile);

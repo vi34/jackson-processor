@@ -109,7 +109,7 @@ public class MediaItemDeserializer extends JsonDeserializer<MediaItem> {
                                         media.size = parser.nextLongValue(-1L);
                                         if (parser.nextFieldName(FIELD_BITRATE)) {
                                             media.bitrate = parser.nextIntValue(-1);
-                                            media.hasBitrate = true;
+                                            //media.hasBitrate = true;
                                             if (parser.nextFieldName(FIELD_COPYRIGHT)) {
                                                 media.copyright = parser.nextTextValue();
                                                 if (parser.nextFieldName(FIELD_PERSONS)) {
@@ -166,7 +166,7 @@ public class MediaItemDeserializer extends JsonDeserializer<MediaItem> {
                         continue;
                     case FIELD_IX_BITRATE:
                         media.bitrate = parser.nextIntValue(-1);
-                        media.hasBitrate = true;
+                        //media.hasBitrate = true;
                         continue;
                     case FIELD_IX_PERSONS:
                         media.persons = readPersons(parser);

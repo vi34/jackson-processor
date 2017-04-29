@@ -12,7 +12,7 @@ import com.vshatrov.deserializers.MediaItemDeserializerNode;
 import com.vshatrov.deserializers.PojoDeserializer;
 import com.vshatrov.entities.Complex;
 import com.vshatrov.entities.Pojo;
-import com.vshatrov.entities.media.MediaItem;
+import com.vshatrov.entities.media.*;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -31,6 +31,7 @@ public class Deserialization {
     ObjectMapper mapper;
     MappingJsonFactory factory;
     Pojo pojo;
+    Complex complex;
     MediaItem mediaItem;
 
     @Param({"afterBurner", "custom", "reflection", "processor"})
@@ -49,7 +50,11 @@ public class Deserialization {
         handModule.addDeserializer(Pojo.class, new PojoDeserializer());
         handModule.addDeserializer(Complex.class, new ComplexDeserializer());
         SimpleModule procModule = new SimpleModule();
-        procModule.addDeserializer(MediaItem.class, new MediaItemDeserializerNode());
+        procModule.addDeserializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemDeserializer());
+        procModule.addDeserializer(Image.class, new ImageDeserializer());
+        procModule.addDeserializer(Media.class, new MediaDeserializer());
+        procModule.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
+        procModule.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
 
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
@@ -59,9 +64,12 @@ public class Deserialization {
             default:
         }
 
+        pojo = Pojo.makePojo();
+        complex = Complex.makeComplex(3);
         mediaItem = MediaItem.buildItem();
     }
 
+/*
     @Benchmark
     @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -70,7 +78,7 @@ public class Deserialization {
         return mapper.writeValueAsString(pojo);
     }
 
-   /* @Benchmark
+    @Benchmark
     @BenchmarkMode({Mode.AverageTime, Mode.SingleShotTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
@@ -78,6 +86,7 @@ public class Deserialization {
         return mapper.writeValueAsString(complex);
     }
 */
+
     @Benchmark
     @BenchmarkMode({Mode.AverageTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -89,11 +98,10 @@ public class Deserialization {
     public static void main(String[] args) throws RunnerException {
         Options options = new OptionsBuilder()
                 .include(Deserialization.class.getSimpleName())
-                .warmupIterations(5)
+                .warmupIterations(4)
                 .measurementIterations(12)
                 .output("profile.txt")
-                .forks(2)
-                .threads(2)
+                .forks(1)
                 .build();
 
         new Runner(options).run();
@@ -109,6 +117,7 @@ public class Deserialization {
             "    \"format\" : \"video/mpeg4\",\n" +
             "    \"duration\" : 180000000000000000,\n" +
             "    \"size\" : 58982400,\n" +
+            "    \"bitrate\": 132,\n" +
             "    \"copyright\" : \"None\",\n" +
             "    \"persons\" : [ \"Bill Gates\", \"Steve Jobs\" ]\n" +
             "  },\n" +

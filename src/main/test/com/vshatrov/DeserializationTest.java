@@ -9,9 +9,12 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,7 +37,7 @@ public class DeserializationTest {
         factory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         Compilation.classLoader = new URLClassLoader(new URL[]{Compilation.targetFile.toURI().toURL()});
-        Compilation.compile(Paths.get("./src/main/test/com/vshatrov/raw/").toFile().listFiles());
+        Compilation.compileDir(Paths.get("./src/main/test/com/vshatrov/raw/"));
     }
 
     @Test

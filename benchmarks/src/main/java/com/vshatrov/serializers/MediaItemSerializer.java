@@ -78,10 +78,10 @@ public class MediaItemSerializer extends StdSerializer<MediaItem> {
         generator.writeNumber(media.duration);
         generator.writeFieldName(FIELD_SIZE);
         generator.writeNumber(media.size);
-        if (media.hasBitrate) {
+        //if (media.hasBitrate) {
             generator.writeFieldName(FIELD_BITRATE);
             generator.writeNumber(media.bitrate);
-        }
+        //}
         if (media.copyright != null) {
             generator.writeFieldName(FIELD_COPYRIGHT);
             generator.writeString(media.copyright);

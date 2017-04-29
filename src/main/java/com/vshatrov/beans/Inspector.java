@@ -1,14 +1,19 @@
 package com.vshatrov.beans;
 
 
+import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.util.Pair;
 import com.vshatrov.beans.properties.Property;
 import com.vshatrov.beans.properties.PropertyFabric;
 
 import javax.lang.model.element.*;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static javax.lang.model.type.TypeKind.*;
 
@@ -57,6 +62,9 @@ public class Inspector {
                 property.setGetter(getter.getSimpleName().toString());
                 property.setSetter(setter.getSimpleName().toString());
             }
+            getJsonProperty(member)
+                    .flatMap(ann -> extractAnnotationValue(ann, "value()"))
+                    .ifPresent(n -> property.setName((String)n));
         }
     }
 
@@ -69,6 +77,8 @@ public class Inspector {
             if ((mName.startsWith("get") && mName.length() > 3 && name.equals(mName.substring(3)))
                     || (field.asType().getKind().equals(BOOLEAN) && mName.startsWith("is")
                         && mName.length() > 2 &&  name.equals(mName.substring(2)))
+                    || getJsonProperty(method).isPresent()
+                        && compareJsonPropertyName(getJsonProperty(method).get(), field)
                     ) {
                 getter = method;
                 break;
@@ -82,12 +92,36 @@ public class Inspector {
         String name = field.getSimpleName().toString().toLowerCase();
         for (Symbol.MethodSymbol method : methods) {
             String mName = method.getSimpleName().toString().toLowerCase();
-            if (mName.startsWith("set") && mName.length() > 3 && name.equals(mName.substring(3))) {
+            if (mName.startsWith("set") && mName.length() > 3 && name.equals(mName.substring(3))
+                    || getJsonProperty(method).isPresent()
+                        && compareJsonPropertyName(getJsonProperty(method).get(), field)
+                        && method.getReturnType().getKind().equals(VOID)
+                        && method.getParameters().size() == 1
+                        && method.getParameters().get(0).asType().equals(field.asType())
+                    ) {
                 setter = method;
                 break;
             }
         }
         return setter;
+    }
+
+    private Optional<Object> extractAnnotationValue(AnnotationMirror annotation, String key) {
+        return annotation.getElementValues().entrySet().stream().filter(p -> p.getKey().toString().equals(key))
+                .findAny().map(p -> p.getValue().getValue());
+    }
+
+    private boolean compareJsonPropertyName(AnnotationMirror jsonProp, VariableElement field) {
+      return extractAnnotationValue(jsonProp, "value()")
+              .map(p -> p.toString().equals(field.getSimpleName().toString()))
+              .orElse(false);
+    }
+
+
+    private Optional<? extends AnnotationMirror> getJsonProperty(Element symbol) {
+        return symbol.getAnnotationMirrors().stream()
+                .filter(ann -> ann.getAnnotationType().toString().equals("com.fasterxml.jackson.annotation.JsonProperty"))
+                .findAny();
     }
 
 }

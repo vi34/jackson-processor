@@ -51,8 +51,8 @@ public class MediaItemDeserializerNode extends JsonDeserializer<MediaItem> {
         media.size = sizeNode == null ? 0 :  sizeNode.numberValue().longValue();
         IntNode bitNode = (IntNode)node.get("bitrate");
         media.bitrate = bitNode == null ? 0 : (Integer) bitNode.numberValue();
-        BooleanNode hasBitNode = (BooleanNode) node.get("hasBitrate");
-        media.hasBitrate = hasBitNode != null && hasBitNode.asBoolean();
+        //BooleanNode hasBitNode = (BooleanNode) node.get("hasBitrate");
+        //media.hasBitrate = hasBitNode != null && hasBitNode.asBoolean();
         media.player = readPlayer(node.get("player"));
         media.persons = new ArrayList<>();
         ((ArrayNode) node.get("persons")).elements()

@@ -21,7 +21,7 @@ public class Media {
     public long duration;
     public long size;
     public int bitrate;         // Can be unset.
-    public boolean hasBitrate;
+    //public boolean hasBitrate;
 
     public List<String> persons;
 
