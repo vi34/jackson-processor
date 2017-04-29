@@ -47,9 +47,9 @@ public class Serialization {
         handModule.addSerializer(Complex.class, new ComplexSerializer());
         handModule.addSerializer(MediaItem.class, new MediaItemSerializer());
         SimpleModule procModule = new SimpleModule();
-        //procModule.addSerializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemSerializer());
-        //procModule.addSerializer(Complex.class, new com.vshatrov.entities.ComplexSerializer());
-        //procModule.addSerializer(Pojo.class, new com.vshatrov.entities.PojoSerializer());
+        procModule.addSerializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemSerializer());
+        procModule.addSerializer(Complex.class, new com.vshatrov.entities.ComplexSerializer());
+        procModule.addSerializer(Pojo.class, new com.vshatrov.entities.PojoSerializer());
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
                 break;

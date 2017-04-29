@@ -35,13 +35,15 @@ public class Debug {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 
         SimpleModule module = new SimpleModule();
-        module.addSerializer(Pojo.class, new PojoSerializer());
-        module.addSerializer(Complex.class, new ComplexSerializer());
+        module.addSerializer(Pojo.class, new com.vshatrov.entities.PojoSerializer());
+        module.addSerializer(Complex.class, new com.vshatrov.entities.ComplexSerializer());
+        module.addSerializer(MediaItem.class, new MediaItemSerializer());
         //module.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
         //module.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
         module.addDeserializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemDeserializer());
         module.addDeserializer(Image.class, new ImageDeserializer());
         module.addDeserializer(Media.class, new MediaDeserializer());
+        //module.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
         mapper.registerModule(module);
 
       /*  Pojo pojo = Pojo.makePojo();
@@ -51,8 +53,7 @@ public class Debug {
 
         Pojo read = mapper.readValue(s, Pojo.class);
         System.out.println(read.equals(pojo));*/
-   /*
-        Complex complex = Complex.makeComplex(3);
+       /* Complex complex = Complex.makeComplex(3);
 
         String s = mapper.writeValueAsString(complex);
         System.out.println(s);
