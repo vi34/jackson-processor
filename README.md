@@ -28,6 +28,15 @@ CPU: Intel Core i5 2,4 GHz
 
 #### Current results:
 
+##### Summary
+Speedup compared to default method. 
+
+method | unordered Deserialization | ordered Deserialization | Serialization
+---|---|---|---
+afterburner | ~4%  | ~24% |  ~24%
+handwritten | ~10% | ~38% |  ~34%
+processor   | ~7%  | ~36% |  ~34%
+
 Benchmark             |   (method) | (orderedProperties) | Mode | Cnt   |  Score  |  Error | Units
 ---|---|---|---|---|---|---|---
 Deserialization.media |  afterBurner |                 true |  avgt |   45 |  3258.910 | ± 40.761  | ns/op
@@ -42,13 +51,3 @@ Serialization.media |    afterBurner |                  N/A |  avgt |   45 |  19
 Serialization.media |    handWritten |                 N/A |  avgt |   45 |  1711.002 | ± 34.012  | ns/op
 Serialization.media |     reflection |                 N/A |  avgt |   45 |  2572.149 | ± 33.514  | ns/op
 Serialization.media |      processor |                 N/A |  avgt |   45 |  1703.740 | ± 29.353  | ns/op
-
-
-##### Summary
-Speedup compared to default method. 
-
-method | unordered Deserialization | ordered Deserialization | Serialization
----|---|---|---
-afterburner | ~4%  | ~24% |  ~24%
-handwritten | ~10% | ~38% |  ~34%
-processor   | ~7%  | ~36% |  ~34%
