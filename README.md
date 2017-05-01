@@ -46,6 +46,7 @@ Serialization.media |      processor |                 N/A |  avgt |   45 |  170
 
 ##### Summary
 Speedup compared to default method. 
+
 method | unordered Deserialization | ordered Deserialization | Serialization
 ---|---|---|---
 afterburner | ~4%  | ~24% |  ~24%
