@@ -87,33 +87,33 @@ public class MediaItemDeserializer extends JsonDeserializer<MediaItem> {
         boolean haveSize = false;
 
         // As with above, first fast path
-        if (parser.nextFieldName(FIELD_PLAYER)) {
-            media.player = Player.find(parser.nextTextValue());
-            if (parser.nextFieldName(FIELD_URI)) {
-                media.uri = parser.nextTextValue();
-                if (parser.nextFieldName(FIELD_TITLE)) {
-                    media.title = parser.nextTextValue();
-                    if (parser.nextFieldName(FIELD_WIDTH)) {
-                        haveWidth = true;
-                        media.width = parser.nextIntValue(-1);
-                        if (parser.nextFieldName(FIELD_HEIGHT)) {
-                            haveHeight = true;
-                            media.height = parser.nextIntValue(-1);
-                            if (parser.nextFieldName(FIELD_FORMAT)) {
-                                media.format = parser.nextTextValue();
-                                if (parser.nextFieldName(FIELD_DURATION)) {
-                                    haveDuration = true;
-                                    media.duration = parser.nextLongValue(-1L);
-                                    if (parser.nextFieldName(FIELD_SIZE)) {
-                                        haveSize = true;
-                                        media.size = parser.nextLongValue(-1L);
-                                        if (parser.nextFieldName(FIELD_BITRATE)) {
-                                            media.bitrate = parser.nextIntValue(-1);
-                                            //media.hasBitrate = true;
-                                            if (parser.nextFieldName(FIELD_COPYRIGHT)) {
-                                                media.copyright = parser.nextTextValue();
-                                                if (parser.nextFieldName(FIELD_PERSONS)) {
-                                                    media.persons = readPersons(parser);
+        if (parser.nextFieldName(FIELD_URI)) {
+            media.uri = parser.nextTextValue();
+            if (parser.nextFieldName(FIELD_TITLE)) {
+                media.title = parser.nextTextValue();
+                if (parser.nextFieldName(FIELD_WIDTH)) {
+                    haveWidth = true;
+                    media.width = parser.nextIntValue(-1);
+                    if (parser.nextFieldName(FIELD_HEIGHT)) {
+                        haveHeight = true;
+                        media.height = parser.nextIntValue(-1);
+                        if (parser.nextFieldName(FIELD_FORMAT)) {
+                            media.format = parser.nextTextValue();
+                            if (parser.nextFieldName(FIELD_DURATION)) {
+                                haveDuration = true;
+                                media.duration = parser.nextLongValue(-1L);
+                                if (parser.nextFieldName(FIELD_SIZE)) {
+                                    haveSize = true;
+                                    media.size = parser.nextLongValue(-1L);
+                                    if (parser.nextFieldName(FIELD_BITRATE)) {
+                                        media.bitrate = parser.nextIntValue(-1);
+                                        //media.hasBitrate = true;
+                                        if (parser.nextFieldName(FIELD_PERSONS)) {
+                                            media.persons = readPersons(parser);
+                                            if (parser.nextFieldName(FIELD_PLAYER)) {
+                                                media.player = Player.find(parser.nextTextValue());
+                                                if (parser.nextFieldName(FIELD_COPYRIGHT)) {
+                                                    media.copyright = parser.nextTextValue();
                                                     parser.nextToken();
                                                     verifyCurrent(parser, JsonToken.END_OBJECT);
                                                     return media;
@@ -128,6 +128,7 @@ public class MediaItemDeserializer extends JsonDeserializer<MediaItem> {
                 }
             }
         }
+
 
         // and if something reorder or missing, general loop:
 

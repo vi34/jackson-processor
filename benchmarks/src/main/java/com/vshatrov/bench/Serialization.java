@@ -39,7 +39,7 @@ public class Serialization {
         factory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
     }
 
-    @Setup(Level.Trial)
+    @Setup(Level.Iteration)
     public void setup() {
         mapper = new ObjectMapper(factory);
         SimpleModule handModule = new SimpleModule();
@@ -63,21 +63,21 @@ public class Serialization {
         mediaItem = MediaItem.buildItem();
     }
 
-    @Benchmark
+   /* @Benchmark
     @BenchmarkMode({Mode.AverageTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public String pojo() throws JsonProcessingException {
         return mapper.writeValueAsString(pojo);
-    }
+    }*/
 
-    @Benchmark
+   /* @Benchmark
     @BenchmarkMode({Mode.AverageTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public String complex() throws JsonProcessingException {
         return mapper.writeValueAsString(complex);
-    }
+    }*/
 
     @Benchmark
     @BenchmarkMode({Mode.AverageTime})

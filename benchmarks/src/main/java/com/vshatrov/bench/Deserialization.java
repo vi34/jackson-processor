@@ -44,7 +44,7 @@ public class Deserialization {
         factory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
     }
 
-    @Setup(Level.Trial)
+    @Setup(Level.Iteration)
     public void setup() {
         mapper = new ObjectMapper(factory);
         SimpleModule handModule = new SimpleModule();
@@ -71,21 +71,21 @@ public class Deserialization {
         mediaItem = orderedProperties ? media_json_ord : media_json_unord;
     }
 
-    @Benchmark
+   /* @Benchmark
     @BenchmarkMode({Mode.AverageTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public Pojo pojo() throws IOException {
         return mapper.readValue(pojo, Pojo.class);
-    }
+    }*/
 
-    @Benchmark
+   /* @Benchmark
     @BenchmarkMode({Mode.AverageTime})
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     public Complex complex() throws IOException {
         return mapper.readValue(complex, Complex.class);
-    }
+    }*/
 
     @Benchmark
     @BenchmarkMode({Mode.AverageTime})

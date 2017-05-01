@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.io.Files;
-import com.vshatrov.deserializers.ComplexDeserializer;
-import com.vshatrov.deserializers.PojoDeserializer;
+import com.vshatrov.deserializers.*;
+import com.vshatrov.deserializers.MediaItemDeserializer;
 import com.vshatrov.entities.Pojo;
 import com.vshatrov.entities.Complex;
 import com.vshatrov.entities.media.*;
@@ -40,9 +40,9 @@ public class Debug {
         module.addSerializer(MediaItem.class, new MediaItemSerializer());
         //module.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
         //module.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
-        module.addDeserializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemDeserializer());
-        module.addDeserializer(Image.class, new ImageDeserializer());
-        module.addDeserializer(Media.class, new MediaDeserializer());
+        module.addDeserializer(MediaItem.class, new MediaItemDeserializer());
+       // module.addDeserializer(Image.class, new ImageDeserializer());
+        //module.addDeserializer(Media.class, new MediaDeserializer());
         //module.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
         mapper.registerModule(module);
 
