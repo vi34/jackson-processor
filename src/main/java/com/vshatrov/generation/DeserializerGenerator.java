@@ -160,6 +160,17 @@ public class DeserializerGenerator {
 
             mappingBuilder.addStatement("$L.put($L, $L)", MAPPING_VAR, fullFieldConst.name, indexFieldConst.name);
 
+            for (int j = 0; j < prop.getAlternativeNames().size(); ++j) {
+                String alterName = prop.getAlternativeNames().get(j);
+                FieldSpec altField = FieldSpec
+                        .builder(String.class, convertToStringAlternativeName(prop.getName(), alterName, j))
+                        .addModifiers(Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
+                        .initializer("$S", alterName)
+                        .build();
+                deserializerBuilder.addField(altField);
+                mappingBuilder.addStatement("$L.put($L, $L)", MAPPING_VAR, altField.name, indexFieldConst.name);
+            }
+
             deserializerBuilder
                     .addField(fullFieldConst)
                     .addField(indexFieldConst)
@@ -472,6 +483,10 @@ public class DeserializerGenerator {
 
     private String readMethodName(String name) {
         return "read_"+name.toLowerCase();
+    }
+
+    private String convertToStringAlternativeName(String mainName, String alternativeName, int i) {
+        return convertToStringConstName(mainName) + "_ALT_" + i + "_" + alternativeName.toUpperCase();
     }
 
     private String convertToStringConstName(String name) {

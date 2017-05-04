@@ -72,9 +72,9 @@ public class Utils {
                 .findAny().map(p -> p.getValue().getValue());
     }
 
-    public static Optional<? extends AnnotationMirror> getAnnotation(Element symbol, String annType) {
+    public static Optional<? extends AnnotationMirror> getAnnotation(Element symbol, Class<?> annType) {
             return symbol.getAnnotationMirrors().stream()
-                    .filter(ann -> ann.getAnnotationType().toString().equals(annType))
+                    .filter(ann -> ann.getAnnotationType().toString().equals(annType.getCanonicalName()))
                     .findAny();
     }
 }

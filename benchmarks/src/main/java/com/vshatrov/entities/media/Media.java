@@ -1,8 +1,9 @@
 package com.vshatrov.entities.media;
 
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.vshatrov.annotations.GenerateClasses;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
@@ -11,8 +12,8 @@ import java.util.List;
 /**
  * @author Viktor Shatrov.
  */
-@JsonSerialize
-@JsonDeserialize
+@JsonSerialize(using = JsonSerializer.None.class)
+@JsonDeserialize(using = JsonDeserializer.None.class)
 @EqualsAndHashCode
 public class Media {
 

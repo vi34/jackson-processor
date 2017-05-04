@@ -144,7 +144,7 @@ public class JacksonProcessor extends AbstractProcessor {
     }
 
 
-    private void attachClass(BeanDescription beanDescription, JavaFile javaFile, String annotationName) {
+    private void attachClass(BeanDescription beanDescription, JavaFile javaFile, Class<?> annotationName) {
         JCTree.JCExpression selector = treeMaker.Ident(names.fromString(javaFile.packageName));
         JCTree.JCExpression serializer = treeMaker.Select(selector, names.fromString(javaFile.typeSpec.name));
         TypeElement element = beanDescription.getElement();
@@ -172,12 +172,12 @@ public class JacksonProcessor extends AbstractProcessor {
     }
 
     private void attachSerializer(BeanDescription beanDescription, SerializationInfo serializationInfo) {
-       attachClass(beanDescription, serializationInfo.getSerializerFile(), JSON_SERIALIZE);
+       attachClass(beanDescription, serializationInfo.getSerializerFile(), JsonSerialize.class);
     }
 
 
     private void attachDeserializer(BeanDescription beanDescription, DeserializationInfo serializationInfo) {
-        attachClass(beanDescription, serializationInfo.getJavaFile(), JSON_DESERIALIZE);
+        attachClass(beanDescription, serializationInfo.getJavaFile(), JsonDeserialize.class);
     }
 
     @Override

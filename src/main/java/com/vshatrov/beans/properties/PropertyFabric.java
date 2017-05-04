@@ -52,5 +52,4 @@ public class PropertyFabric {
         return property;
     }
 
-
 }

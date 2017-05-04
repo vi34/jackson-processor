@@ -43,9 +43,9 @@ public class Debug {
         //module.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
         module.addSerializer(Complex.class, new ComplexSerializer());
         module.addDeserializer(MediaItem.class, new MediaItemDeserializer());
-       // module.addDeserializer(Image.class, new ImageDeserializer());
-        //module.addDeserializer(Media.class, new MediaDeserializer());
-        //module.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
+        module.addDeserializer(Image.class, new ImageDeserializer());
+        module.addDeserializer(Media.class, new MediaDeserializer());
+        module.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
         mapper.registerModule(module);
 
       /*  Pojo pojo = Pojo.makePojo();

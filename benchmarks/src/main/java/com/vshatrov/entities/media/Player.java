@@ -1,7 +1,5 @@
 package com.vshatrov.entities.media;
 
-import com.vshatrov.annotations.GenerateClasses;
-
 /**
  * @author Viktor Shatrov.
  */

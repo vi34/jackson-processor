@@ -9,6 +9,8 @@ import lombok.*;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 import static com.vshatrov.utils.Utils.isEnum;
@@ -26,6 +28,7 @@ public class Property {
     boolean isSimple;
     String name;    /** name of property which will be in json*/
     String propertyName; /** actual property name in class, used only for access */
+    List<String> alternativeNames = new ArrayList<>();
     String typeName;
     Function<String, String> dynamicAccessor;
     String getter;

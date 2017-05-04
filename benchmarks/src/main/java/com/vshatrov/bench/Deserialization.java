@@ -52,11 +52,11 @@ public class Deserialization {
         handModule.addDeserializer(Pojo.class, new PojoDeserializer());
         handModule.addDeserializer(Complex.class, new ComplexDeserializer());
         SimpleModule procModule = new SimpleModule();
-        //procModule.addDeserializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemDeserializer());
-        //procModule.addDeserializer(Image.class, new ImageDeserializer());
-        //procModule.addDeserializer(Media.class, new MediaDeserializer());
-        //procModule.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
-        //procModule.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
+        procModule.addDeserializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemDeserializer());
+        procModule.addDeserializer(Image.class, new ImageDeserializer());
+        procModule.addDeserializer(Media.class, new MediaDeserializer());
+        procModule.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
+        procModule.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
 
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());

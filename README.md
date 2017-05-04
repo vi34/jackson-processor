@@ -9,7 +9,8 @@ To generate JsonDeserializer, class must be marked with Jackson _@JsonDeserializ
 If _using_ value is absent in annotation, generated classes will be automatically registered as default 
 serializer/deserializer. (_using_ property will be set)
 
-
+To disable automatic registration for particular class simply set _using=JsonSerializer.None.class_
+To disable automatic registration for all classes set processor option _AUTO_REGISTRATION=false_. 
 
 
 #### Tests

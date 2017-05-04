@@ -5,7 +5,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.vshatrov.prototypes.AlternativesDeserializer;
 import com.vshatrov.raw.*;
+import com.vshatrov.raw.annotations.Alternatives;
 import com.vshatrov.raw.annotations.Renaming;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,6 +65,33 @@ public class AnnotationsTest {
     private void renaming() throws IOException {
         Renaming renaming = new Renaming(4, 12, "George");
         check(renaming, Renaming.class);
+    }
+
+    @Test
+    public void alternatives_properNames() throws IOException {
+        loadDeserializer(Alternatives.class, mapper);
+        //SimpleModule module = new SimpleModule();
+        //module.addDeserializer(Alternatives.class, new AlternativesDeserializer());
+        //mapper.registerModule(module);
+        String ordinary_json = "{\"name\": \"Alex\", \"age\" : 1, \"pojo\": {\"i1\": 1, \"a2\": 2}}";
+        String name_json = "{\"fullname\": \"Alex\", \"age\" : 1, \"pojo\": {\"i1\": 1, \"a2\": 2}}";
+        String other_json = "{\"Name\": \"Alex\", \"old\" : 1, \"Pojjo\": {\"i1\": 1, \"a2\": 2}}";
+        String other2_json = "{\"nAme\": \"Alex\", \"old\" : 1, \"Pojjo\": {\"i1\": 1, \"a2\": 2}}";
+
+        Alternatives alternatives = new Alternatives("Alex", 1, new Pojo(1, 2));
+
+        Alternatives read = mapper.readValue(ordinary_json, Alternatives.class);
+        Assert.assertEquals(alternatives, read);
+
+        read = mapper.readValue(name_json, Alternatives.class);
+        Assert.assertEquals(alternatives, read);
+
+        read = mapper.readValue(other_json, Alternatives.class);
+        Assert.assertEquals(alternatives, read);
+
+        read = mapper.readValue(other2_json, Alternatives.class);
+        Assert.assertEquals(alternatives, read);
+
     }
 
 

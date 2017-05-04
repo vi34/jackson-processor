@@ -9,7 +9,8 @@ import java.lang.annotation.Target;
  * @author Viktor Shatrov.
  */
 
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
-public @interface GenerateClasses {
+public @interface AlternativeNames {
+    String[] value();
 }
