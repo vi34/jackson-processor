@@ -7,15 +7,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.vshatrov.prototypes.AlternativesDeserializer;
+import com.vshatrov.prototypes.TypeChangeDeserializer;
 import com.vshatrov.raw.*;
 import com.vshatrov.raw.annotations.Alternatives;
 import com.vshatrov.raw.annotations.Renaming;
+import com.vshatrov.raw.annotations.TypeChange;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
@@ -69,10 +72,7 @@ public class AnnotationsTest {
 
     @Test
     public void alternatives_properNames() throws IOException {
-        loadDeserializer(Alternatives.class, mapper);
-        //SimpleModule module = new SimpleModule();
-        //module.addDeserializer(Alternatives.class, new AlternativesDeserializer());
-        //mapper.registerModule(module);
+        Assert.assertTrue(loadDeserializer(Alternatives.class, mapper));
         String ordinary_json = "{\"name\": \"Alex\", \"age\" : 1, \"pojo\": {\"i1\": 1, \"a2\": 2}}";
         String name_json = "{\"fullname\": \"Alex\", \"age\" : 1, \"pojo\": {\"i1\": 1, \"a2\": 2}}";
         String other_json = "{\"Name\": \"Alex\", \"old\" : 1, \"Pojjo\": {\"i1\": 1, \"a2\": 2}}";
@@ -93,6 +93,28 @@ public class AnnotationsTest {
         Assert.assertEquals(alternatives, read);
 
     }
+
+
+    @Test
+    public void type_change() throws IOException {
+        Assert.assertTrue(loadDeserializer(TypeChange.class, mapper));
+
+        String ordinary_json = "{\"name\": \"new\", \"pojo\": {\"i1\": 1, \"a2\": 2}}";
+        String old_json = "{\"name\": \"old\", \"pojo\": 13 }";
+
+        TypeChange source  = new TypeChange("new", new Pojo(1, 2));
+
+        TypeChange read = mapper.readValue(ordinary_json, TypeChange.class);
+        Assert.assertEquals(source, read);
+
+        source  = new TypeChange("old", new Pojo(13, 0));
+
+        read = mapper.readValue(old_json, TypeChange.class);
+        Assert.assertEquals(source, read);
+
+    }
+
+
 
 
     private <T> void check(T val, Class<T> clazz) throws IOException {

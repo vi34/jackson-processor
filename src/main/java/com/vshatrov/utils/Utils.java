@@ -1,10 +1,18 @@
 package com.vshatrov.utils;
 
+import com.sun.source.util.Trees;
+import com.sun.tools.javac.model.JavacElements;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.util.Names;
+
+import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
@@ -17,6 +25,13 @@ import static javax.lang.model.type.TypeKind.*;
  */
 public class Utils {
     public static Types typeUtils;
+    public static Elements elementUtils;
+    public static Filer filer;
+    public static Messager messager;
+    public static TreeMaker treeMaker;
+    public static Trees trees;
+    public static Names names;
+    public static JavacElements javacElements;
 
     public static String qualifiedToSimple(String typeName) {
         String erasure = erasure(typeName);
@@ -76,5 +91,9 @@ public class Utils {
             return symbol.getAnnotationMirrors().stream()
                     .filter(ann -> ann.getAnnotationType().toString().equals(annType.getCanonicalName()))
                     .findAny();
+    }
+
+    public static JCTree.JCIdent ident(String name) {
+        return treeMaker.Ident(javacElements.getName(name));
     }
 }

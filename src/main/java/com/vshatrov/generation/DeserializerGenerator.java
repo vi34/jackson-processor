@@ -12,43 +12,33 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.type.ArrayType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.squareup.javapoet.*;
-import com.sun.tools.doclets.internal.toolkit.builders.MethodBuilder;
 import com.vshatrov.GenerationException;
 import com.vshatrov.beans.BeanDescription;
+import com.vshatrov.beans.Inspector;
 import com.vshatrov.beans.properties.*;
 import com.vshatrov.utils.Utils;
 
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static com.vshatrov.utils.Utils.filer;
 
 /**
  * @author Viktor Shatrov.
  */
 public class DeserializerGenerator {
-
-    //TODO: handle All-args constructors
-
     public static final String PACKAGE_MODIFIER = "";
     public static final String SUFFIX = "Deserializer";
     public static final String MAPPING_VAR = "fullFieldToIndex";
-    private Messager messager;
 
-    private Filer filer;
     private Map<String, DeserializationInfo> processed;
 
     private DeserializationInfo currentDeserInfo;
 
 
-    public DeserializerGenerator(Filer filer, Messager messager, Map<String, DeserializationInfo> processed) {
-        this.filer = filer;
+    public DeserializerGenerator(Map<String, DeserializationInfo> processed) {
         this.processed = processed;
-        this.messager = messager;
     }
 
 
@@ -191,7 +181,7 @@ public class DeserializerGenerator {
         deserializeImpl.addStatement("$1T $2L = new $1T()", beanClass, varName);
 
         currentDeserInfo.getPrimitiveProps().forEach((name, prop) -> {
-            deserializeImpl.addStatement("boolean $L = false", presentFlag(name));
+            deserializeImpl.addStatement("boolean $L = false", presenceFlag(name));
         });
 
         genFastVersion(deserializeImpl, varName, 0);
@@ -204,7 +194,7 @@ public class DeserializerGenerator {
             String condition;
             String accessor;
             if (prop.getTName().isPrimitive()) {
-                accessor = presentFlag(prop.getName());
+                accessor = presenceFlag(prop.getName());
                 condition = "!" + accessor;
             } else {
                 accessor = prop.getAccessor(varName);
@@ -231,7 +221,7 @@ public class DeserializerGenerator {
             deserializeImpl.addCode("case $L:\n$>", convertToIndexConstName(property.getName()));
             deserializeImpl.addStatement("parser.nextToken()");
             String propVarName = addPropertyReading(deserializeImpl, property);
-            assignObjectsProperty(deserializeImpl, varName, property, propVarName);
+            assignObjectsProperty(deserializeImpl, varName, property, propVarName, true);
             deserializeImpl.addStatement("continue$<");
 
         }
@@ -252,7 +242,7 @@ public class DeserializerGenerator {
 
         deserializeImpl.addStatement("parser.nextToken()");
         String propVarName = addPropertyReading(deserializeImpl, property);
-        assignObjectsProperty(deserializeImpl, varName, property, propVarName);
+        assignObjectsProperty(deserializeImpl, varName, property, propVarName, true);
 
         if (propIndex + 1 < currentDeserInfo.getUnit().getProps().size()) {
             genFastVersion(deserializeImpl, varName, propIndex + 1);
@@ -289,6 +279,10 @@ public class DeserializerGenerator {
             MethodSpec mapRead = mapRead((MapProp) property);
             readMethod.addStatement("$N(parser, ctxt)", mapRead);
             currentDeserInfo.getReadMethods().put(mapRead.name, mapRead);
+        } else if (property.getOldProperty() != null) {
+            MethodSpec withOldTypeRead = withOldTypeRead(property);
+            readMethod.addStatement("$N(parser, ctxt)", withOldTypeRead);
+            currentDeserInfo.getReadMethods().put(withOldTypeRead.name, withOldTypeRead);
         } else {
             readMethod.addStatement("($1T) $2L.deserialize(parser, ctxt)", property.getTName(), deserializerName(property));
             currentDeserInfo.getProvided().add(property);
@@ -297,15 +291,55 @@ public class DeserializerGenerator {
         return propVarName;
     }
 
-    private void assignObjectsProperty(MethodSpec.Builder readMethod, String objVarName, Property property, String propVarName) {
+    private MethodSpec withOldTypeRead(Property property) throws GenerationException {
+        MethodSpec.Builder builder = MethodSpec
+                .methodBuilder("read_" + property.getName())
+                .addModifiers(Modifier.PRIVATE)
+                .returns(property.getTName())
+                .addParameter(JsonParser.class, "parser")
+                .addParameter(DeserializationContext.class, "ctxt")
+                .addException(IOException.class);
+
+
+        builder
+                .beginControlFlow("if (parser.currentToken() != JsonToken.START_OBJECT)")
+                .addStatement("$1T ret = new $1T()", property.getTName());
+
+        BeanDescription description = Inspector.getDescription(property.getTypeName());
+        Property oldProperty = description.getProps().stream()
+                .filter(prop -> prop.getName().equals(property.getOldProperty()))
+                .findAny()
+                .orElseThrow(() -> new GenerationException(
+                        "Couldn't find " + property.getOldProperty() + " property inside " + property.getName()));
+        String var = addPropertyReading(builder, oldProperty);
+        assignObjectsProperty(builder, "ret", oldProperty, var, false);
+        builder
+                .addStatement("return ret")
+                .nextControlFlow("else");
+        property.setOldProperty(null);
+        String propVarName = addPropertyReading(builder, property);
+        builder.addStatement("return $L", propVarName);
+        builder.endControlFlow();
+        return builder.build();
+    }
+
+    /**
+     *
+     * @param readMethod method to insert code in
+     * @param property property to assign
+     * @param propVarName name of variable with property value
+     * @param presenceFlagAssign true if property presence flag must be assigned too.
+     */
+    private void assignObjectsProperty(MethodSpec.Builder readMethod, String objVarName,
+                                       Property property, String propVarName, boolean presenceFlagAssign) {
         if (property.getSetter() == null) {
             readMethod.addStatement("$L = $L", property.getAccessor(objVarName), propVarName);
         } else {
             readMethod.addStatement("$L.$L($L)", objVarName, property.getSetter(), propVarName);
         }
 
-        if (property.getTName().isPrimitive()) {
-            readMethod.addStatement("$L = true", presentFlag(property.getName()));
+        if (property.getTName().isPrimitive() && presenceFlagAssign) {
+            readMethod.addStatement("$L = true", presenceFlag(property.getName()));
         }
     }
 
@@ -470,7 +504,7 @@ public class DeserializerGenerator {
 
     }
 
-    private String presentFlag(String name) {
+    private String presenceFlag(String name) {
         return "have_" + name;
     }
 

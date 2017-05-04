@@ -25,23 +25,26 @@ import static com.vshatrov.utils.Utils.isNumber;
 @EqualsAndHashCode
 public class Property {
 
-    boolean isSimple;
     String name;    /** name of property which will be in json*/
     String propertyName; /** actual property name in class, used only for access */
-    List<String> alternativeNames = new ArrayList<>();
     String typeName;
     Function<String, String> dynamicAccessor;
     String getter;
     String setter;
     TypeName tName;
     TypeKind typeKind;
-    JsonType jsonType;
+    boolean isSimple;
 
-    Property(VariableElement element) {
-        propertyName = element.getSimpleName().toString();
-        name = propertyName;
-        TypeMirror type = element.asType();
+    List<String> alternativeNames = new ArrayList<>();
+    String oldProperty;
+
+    /**
+     * Type constructor used only when property is a type parameter of another property
+     * e.g. Array element type, generic type parameter
+     * */
+    Property(TypeMirror type) {
         typeName = type.toString();
+        name = Utils.qualifiedToSimple(typeName);
         tName = TypeName.get(type);
         jsonType = JsonType.OBJECT;
         try {
@@ -52,13 +55,14 @@ public class Property {
         fillWithType(type);
     }
 
-    /**
-     * Type constructor used only when property is a type parameter of another property
-     * e.g. Array element type, generic type parameter
-     * */
-    Property(TypeMirror type) {
+    JsonType jsonType;
+
+
+    Property(VariableElement element) {
+        propertyName = element.getSimpleName().toString();
+        name = propertyName;
+        TypeMirror type = element.asType();
         typeName = type.toString();
-        name = Utils.qualifiedToSimple(typeName);
         tName = TypeName.get(type);
         jsonType = JsonType.OBJECT;
         try {

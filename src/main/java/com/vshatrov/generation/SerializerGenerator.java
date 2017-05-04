@@ -18,11 +18,11 @@ import com.vshatrov.beans.properties.MapProp;
 import com.vshatrov.beans.properties.Property;
 import com.vshatrov.utils.Utils;
 
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.Map;
+
+import static com.vshatrov.utils.Utils.*;
 
 /**
  * @author Viktor Shatrov.
@@ -35,18 +35,12 @@ public class SerializerGenerator {
     public static final String SUFFIX = "Serializer";
     //TODO: investigate package fields access
     public static final String PACKAGE_MODIFIER = ""; // in case of different package, miss package-access values
-    private Messager messager;
-
-    private Filer filer;
     private Map<String, SerializationInfo> processed;
     private Map<String, BeanDescription> beansInfo;
 
-    public SerializerGenerator(Filer filer, Messager messager, Map<String, SerializationInfo> processed, Map<String, BeanDescription> beansInfo) {
-        this.filer = filer;
+    public SerializerGenerator(Map<String, SerializationInfo> processed, Map<String, BeanDescription> beansInfo) {
         this.processed = processed;
         this.beansInfo = beansInfo;
-        this.messager = messager;
-
     }
 
     public SerializationInfo generateSerializer(BeanDescription unit) throws IOException, GenerationException {
@@ -228,8 +222,8 @@ public class SerializerGenerator {
                             .addException(IOException.class)
                             .build();
 
-                    current.getProvided().add(property);
-                    Utils.warning(messager, null, "couldn't statically resolve serializer for %s", property.getTypeName());
+                    serInfo.getProvided().add(property);
+                    warning(messager, null, "couldn't statically resolve serializer for %s", property.getTypeName());
                 } else {
                     serInfo = generateSerializer(beanDef);
                 }

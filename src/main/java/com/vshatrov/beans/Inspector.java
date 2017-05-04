@@ -1,10 +1,12 @@
 package com.vshatrov.beans;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.vshatrov.annotations.AlternativeNames;
+import com.vshatrov.annotations.OldProperty;
 import com.vshatrov.beans.properties.Property;
 import com.vshatrov.beans.properties.PropertyFabric;
 import com.vshatrov.utils.Utils;
@@ -13,9 +15,11 @@ import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.vshatrov.utils.Utils.elementUtils;
 import static com.vshatrov.utils.Utils.getAnnotation;
 import static javax.lang.model.type.TypeKind.*;
 
@@ -23,16 +27,14 @@ import static javax.lang.model.type.TypeKind.*;
  * @author Viktor Shatrov.
  */
 public class Inspector {
-    private Elements elementUtils;
+    public static Map<String, BeanDescription> beansCache;
+    private static PropertyFabric fabric = new PropertyFabric();
     private List<VariableElement> fields;
     private List<Symbol.MethodSymbol> methods;
-    private PropertyFabric fabric;
 
-    public Inspector(Elements elementUtils) {
-        this.elementUtils = elementUtils;
+    public Inspector() {
         fields = new ArrayList<>();
         methods = new ArrayList<>();
-        fabric = new PropertyFabric();
     }
 
     public BeanDescription inspect(TypeElement element) {
@@ -47,7 +49,26 @@ public class Inspector {
             }
         }
         fields.forEach(field -> processField(definition, field));
+        beansCache.put(definition.getTypeName(), definition);
         return definition;
+    }
+
+    public static BeanDescription getDescription(String typeName) {
+        if (beansCache.containsKey(typeName)) {
+            return beansCache.get(typeName);
+        }
+
+        TypeElement typeElement = elementUtils.getTypeElement(typeName);
+        return new Inspector().inspect(typeElement);
+    }
+
+    public BeanDescription addTypeElement(TypeElement element) {
+        String typeName = element.asType().toString();
+        if (beansCache.containsKey(typeName)) {
+            return beansCache.get(typeName);
+        }
+
+        return inspect(element);
     }
 
     private void processField(BeanDescription definition, VariableElement member) {
@@ -72,13 +93,18 @@ public class Inspector {
                             .map(c -> c.getValue().toString())
                             .collect(Collectors.toList()))
                     );
+            getAnnotation(member, OldProperty.class)
+                    .flatMap(ann -> Utils.extractAnnotationValue(ann, "value()"))
+                    .ifPresent(prop ->
+                            property.setOldProperty((String)prop)
+                    );
         }
     }
 
     private boolean takeField(VariableElement member,  Symbol.MethodSymbol getter, Symbol.MethodSymbol setter) {
-        if (member.getModifiers().contains(Modifier.TRANSIENT)
-                || member.getModifiers().contains(Modifier.STATIC)) return false;
-        return !member.getModifiers().contains(Modifier.PRIVATE) || getter != null && setter != null;
+        return !(member.getModifiers().contains(Modifier.TRANSIENT) || member.getModifiers().contains(Modifier.STATIC))
+                && !getAnnotation(member, JsonIgnore.class).isPresent()
+                && (!member.getModifiers().contains(Modifier.PRIVATE) || getter != null && setter != null);
     }
 
     private Symbol.MethodSymbol findGetter(VariableElement field) {
