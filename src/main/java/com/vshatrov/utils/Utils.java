@@ -1,11 +1,14 @@
 package com.vshatrov.utils;
 
 import javax.annotation.processing.Messager;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+
+import java.util.Optional;
 
 import static javax.lang.model.type.TypeKind.*;
 
@@ -62,5 +65,16 @@ public class Utils {
 
         TypeKind kind = type.getKind();
         return kind == INT || kind == LONG || kind == SHORT || kind == BYTE || kind == DOUBLE || kind == FLOAT;
+    }
+
+    public static Optional<Object> extractAnnotationValue(AnnotationMirror annotation, String key) {
+        return annotation.getElementValues().entrySet().stream().filter(p -> p.getKey().toString().equals(key))
+                .findAny().map(p -> p.getValue().getValue());
+    }
+
+    public static Optional<? extends AnnotationMirror> getAnnotation(Element symbol, String annType) {
+            return symbol.getAnnotationMirrors().stream()
+                    .filter(ann -> ann.getAnnotationType().toString().equals(annType))
+                    .findAny();
     }
 }

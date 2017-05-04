@@ -1,6 +1,7 @@
 package com.vshatrov.raw;
 
-import com.vshatrov.annotations.GenerateClasses;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,8 @@ import java.util.List;
 /**
  * @author Viktor Shatrov.
  */
-@GenerateClasses
+@JsonSerialize
+@JsonDeserialize
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString

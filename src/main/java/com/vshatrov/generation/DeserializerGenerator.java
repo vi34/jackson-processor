@@ -41,15 +41,13 @@ public class DeserializerGenerator {
 
     private Filer filer;
     private Map<String, DeserializationInfo> processed;
-    private Map<String, BeanDescription> beansInfo;
 
     private DeserializationInfo currentDeserInfo;
 
 
-    public DeserializerGenerator(Filer filer, Messager messager, Map<String, DeserializationInfo> processed, Map<String, BeanDescription> beansInfo) {
+    public DeserializerGenerator(Filer filer, Messager messager, Map<String, DeserializationInfo> processed) {
         this.filer = filer;
         this.processed = processed;
-        this.beansInfo = beansInfo;
         this.messager = messager;
     }
 
@@ -92,6 +90,7 @@ public class DeserializerGenerator {
                 .build();
 
         javaFile.writeTo(filer);
+        currentDeserInfo.setJavaFile(javaFile);
         currentDeserInfo.setDeserializeMethod(deserImpl);
         processed.put(unit.getTypeName(), currentDeserInfo);
         return currentDeserInfo;

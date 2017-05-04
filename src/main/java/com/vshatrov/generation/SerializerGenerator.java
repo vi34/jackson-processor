@@ -95,6 +95,7 @@ public class SerializerGenerator {
 
         javaFile.writeTo(filer);
         currentSerializationInfo.setSerializeMethod(serImpl);
+        currentSerializationInfo.setSerializerFile(javaFile);
         processed.put(unit.getTypeName(), currentSerializationInfo);
 
         return currentSerializationInfo;

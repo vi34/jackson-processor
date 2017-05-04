@@ -1,6 +1,10 @@
 package com.vshatrov.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.vshatrov.annotations.GenerateClasses;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -18,7 +22,8 @@ import java.util.Random;
 @ToString
 @NoArgsConstructor
 @EqualsAndHashCode
-@GenerateClasses
+@JsonSerialize(using = JsonSerializer.None.class)
+@JsonDeserialize(using = JsonDeserializer.None.class)
 public class Pojo {
     @JsonProperty("i1") int i1;
     @JsonProperty("Str") String str;

@@ -1,7 +1,9 @@
 package com.vshatrov.raw.annotations;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vshatrov.annotations.GenerateClasses;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -10,7 +12,8 @@ import lombok.ToString;
 /**
  * @author Viktor Shatrov.
  */
-@GenerateClasses
+@JsonSerialize
+@JsonDeserialize
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString

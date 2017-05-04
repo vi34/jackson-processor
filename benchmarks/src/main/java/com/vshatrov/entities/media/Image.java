@@ -1,13 +1,16 @@
 package com.vshatrov.entities.media;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.vshatrov.annotations.GenerateClasses;
 import lombok.EqualsAndHashCode;
 
 /**
  * @author Viktor Shatrov.
  */
-@GenerateClasses
+@JsonSerialize
+@JsonDeserialize
 @EqualsAndHashCode
 public class Image
 {

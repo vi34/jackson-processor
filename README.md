@@ -1,8 +1,13 @@
 # jackson-processor
 Annotation Processor for Jackson library
 
-JacksonProcessor generates implementation of _JsonSerializer_ and _JsonDeserializer_ 
-for _@GenerateClasses_ annotated classes. 
+JacksonProcessor generates implementation of _JsonSerializer_ and _JsonDeserializer_ classes.
+
+To generate JsonSerializer, class must be marked with Jackson _@JsonSerialize_ annotation. 
+To generate JsonDeserializer, class must be marked with Jackson _@JsonDeserialize_ annotation.
+
+If _using_ value is absent in annotation, generated classes will be automatically registered as default 
+serializer/deserializer. (_using_ property will be set)
 
 
 

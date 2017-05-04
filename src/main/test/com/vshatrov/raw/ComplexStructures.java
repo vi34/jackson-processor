@@ -1,5 +1,6 @@
 package com.vshatrov.raw;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Map;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-//@GenerateClasses
+//@JsonSerialize
 @NoArgsConstructor
 public class ComplexStructures {
     public List<List<Integer>> lInts;

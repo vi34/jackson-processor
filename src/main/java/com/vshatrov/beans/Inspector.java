@@ -1,18 +1,15 @@
 package com.vshatrov.beans;
 
 
-import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.util.Pair;
 import com.vshatrov.beans.properties.Property;
 import com.vshatrov.beans.properties.PropertyFabric;
+import com.vshatrov.utils.Utils;
 
 import javax.lang.model.element.*;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static javax.lang.model.type.TypeKind.*;
@@ -37,8 +34,6 @@ public class Inspector {
         List<? extends Element> members = elementUtils.getAllMembers(element);
         BeanDescription definition = new BeanDescription(element);
         for (Element member: members) {
-            if (member.getModifiers().contains(Modifier.STATIC))
-                continue;
             if (member.getKind().equals(ElementKind.FIELD)) {
                 VariableElement field = (VariableElement) member;
                 fields.add(field);
@@ -55,7 +50,7 @@ public class Inspector {
         Symbol.MethodSymbol setter = findSetter(member);
         Property property;
 
-        if (!member.getModifiers().contains(Modifier.PRIVATE) || getter != null && setter != null) {
+        if (takeField(member, getter, setter)) {
             property = fabric.construct(member);
             definition.getProps().add(property);
             if (getter != null && setter != null) {
@@ -63,9 +58,15 @@ public class Inspector {
                 property.setSetter(setter.getSimpleName().toString());
             }
             getJsonProperty(member)
-                    .flatMap(ann -> extractAnnotationValue(ann, "value()"))
+                    .flatMap(ann -> Utils.extractAnnotationValue(ann, "value()"))
                     .ifPresent(n -> property.setName((String)n));
         }
+    }
+
+    private boolean takeField(VariableElement member,  Symbol.MethodSymbol getter, Symbol.MethodSymbol setter) {
+        if (member.getModifiers().contains(Modifier.TRANSIENT)
+                || member.getModifiers().contains(Modifier.STATIC)) return false;
+        return !member.getModifiers().contains(Modifier.PRIVATE) || getter != null && setter != null;
     }
 
     private Symbol.MethodSymbol findGetter(VariableElement field) {
@@ -106,22 +107,15 @@ public class Inspector {
         return setter;
     }
 
-    private Optional<Object> extractAnnotationValue(AnnotationMirror annotation, String key) {
-        return annotation.getElementValues().entrySet().stream().filter(p -> p.getKey().toString().equals(key))
-                .findAny().map(p -> p.getValue().getValue());
-    }
-
     private boolean compareJsonPropertyName(AnnotationMirror jsonProp, VariableElement field) {
-      return extractAnnotationValue(jsonProp, "value()")
+      return Utils.extractAnnotationValue(jsonProp, "value()")
               .map(p -> p.toString().equals(field.getSimpleName().toString()))
               .orElse(false);
     }
 
 
     private Optional<? extends AnnotationMirror> getJsonProperty(Element symbol) {
-        return symbol.getAnnotationMirrors().stream()
-                .filter(ann -> ann.getAnnotationType().toString().equals("com.fasterxml.jackson.annotation.JsonProperty"))
-                .findAny();
+        return Utils.getAnnotation(symbol, "com.fasterxml.jackson.annotation.JsonProperty");
     }
 
 }

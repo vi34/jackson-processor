@@ -10,7 +10,7 @@ import java.util.Map;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-//@GenerateClasses
+//@JsonSerialize
 @NoArgsConstructor
 public class KeyObjectMap {
     public Map<Pojo, Pojo> keyObjects;

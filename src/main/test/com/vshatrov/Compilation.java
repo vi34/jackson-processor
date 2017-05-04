@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.sun.tools.javac.util.List;
 import com.vshatrov.generation.DeserializerGenerator;
 import com.vshatrov.generation.SerializerGenerator;
 import org.apache.commons.io.FileUtils;
@@ -40,11 +41,9 @@ public class Compilation {
         final DiagnosticCollector< JavaFileObject > diagnostics = new DiagnosticCollector<>();
         final StandardJavaFileManager manager = compiler.getStandardFileManager(diagnostics, null, null );
         final Iterable< ? extends JavaFileObject> sources = manager.getJavaFileObjectsFromFiles(Arrays.asList(files));
-        manager.setLocation(StandardLocation.SOURCE_OUTPUT,
-                Arrays.asList(targetFile));
-        manager.setLocation(StandardLocation.CLASS_OUTPUT,
-                Arrays.asList(targetFile));
-        JavaCompiler.CompilationTask task = compiler.getTask(null, manager, diagnostics, null, null, sources);
+        manager.setLocation(StandardLocation.SOURCE_OUTPUT, Arrays.asList(targetFile));
+        manager.setLocation(StandardLocation.CLASS_OUTPUT, Arrays.asList(targetFile));
+        JavaCompiler.CompilationTask task = compiler.getTask(null, manager, diagnostics, List.of("-AAUTO_REGISTRATION=false"), null, sources);
         task.setProcessors(Arrays.asList(new JacksonProcessor()));
         System.out.println("Compilation succesful: " + task.call());
         for(final Diagnostic< ? extends JavaFileObject > diagnostic: diagnostics.getDiagnostics() ) {

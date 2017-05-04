@@ -1,5 +1,6 @@
 package com.vshatrov.generation;
 
+import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.vshatrov.beans.BeanDescription;
 import com.vshatrov.beans.properties.ArrayProp;
@@ -32,6 +33,7 @@ public class DeserializationInfo {
     private Set<Property> provided;
     private Set<ArrayProp> providedArrays;
 
+    private JavaFile javaFile;
 
     public DeserializationInfo(BeanDescription unit) {
         this.typeName = unit.getTypeName();

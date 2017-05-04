@@ -1,6 +1,7 @@
 package com.vshatrov;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -35,11 +36,12 @@ public class Debug {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 
         SimpleModule module = new SimpleModule();
-        module.addSerializer(Pojo.class, new com.vshatrov.entities.PojoSerializer());
-        module.addSerializer(Complex.class, new com.vshatrov.entities.ComplexSerializer());
-        module.addSerializer(MediaItem.class, new MediaItemSerializer());
+        //module.addSerializer(Pojo.class, new com.vshatrov.entities.PojoSerializer());
+        //module.addSerializer(Complex.class, new com.vshatrov.entities.ComplexSerializer());
+        //module.addSerializer(MediaItem.class, new MediaItemSerializer());
         //module.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
         //module.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
+        module.addSerializer(Complex.class, new ComplexSerializer());
         module.addDeserializer(MediaItem.class, new MediaItemDeserializer());
        // module.addDeserializer(Image.class, new ImageDeserializer());
         //module.addDeserializer(Media.class, new MediaDeserializer());
@@ -53,21 +55,21 @@ public class Debug {
 
         Pojo read = mapper.readValue(s, Pojo.class);
         System.out.println(read.equals(pojo));*/
-       /* Complex complex = Complex.makeComplex(3);
+        Complex complex = Complex.makeComplex(3);
 
         String s = mapper.writeValueAsString(complex);
         System.out.println(s);
 
         Complex read = mapper.readValue(s, Complex.class);
-        System.out.println(read.equals(complex));*/
-
+        System.out.println(read.equals(complex));
+/*
         MediaItem mediaItem = MediaItem.buildItem();
 
         String s = mapper.writeValueAsString(mediaItem);
         System.out.println(s);
 
         MediaItem read = mapper.readValue(s, MediaItem.class);
-        System.out.println(read.equals(mediaItem));
+        System.out.println(read.equals(mediaItem));*/
 
     }
 }

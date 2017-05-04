@@ -1,12 +1,16 @@
 package com.vshatrov.entities.media;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.vshatrov.annotations.GenerateClasses;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
-@GenerateClasses
+
+@JsonSerialize
+@JsonDeserialize
 @EqualsAndHashCode
 @ToString
 public class MediaItem

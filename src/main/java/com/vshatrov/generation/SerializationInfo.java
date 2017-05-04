@@ -1,5 +1,6 @@
 package com.vshatrov.generation;
 
+import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.vshatrov.beans.properties.Property;
 import lombok.Getter;
@@ -18,6 +19,8 @@ public class SerializationInfo {
     Map<String, SerializationInfo> props;
     Map<String, String> strings;
 
+
+    JavaFile serializerFile;
     /**
      *  properties which will be resolved at runtime
      */

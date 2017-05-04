@@ -4,6 +4,7 @@ import com.vshatrov.beans.properties.Property;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
@@ -22,7 +23,8 @@ public class BeanDescription {
     TypeMirror type;
     TypeElement element;
     List<Property> props;
-
+    AnnotationMirror jsonSerialize;
+    AnnotationMirror jsonDeserialize;
 
     public BeanDescription(TypeElement element) {
         this.element = element;
