@@ -88,7 +88,7 @@ public class JacksonProcessor extends AbstractProcessor {
                     });
 
 
-            SerializerGenerator generator = new SerializerGenerator(processedSerializers, Inspector.beansCache);
+            SerializerGenerator generator = new SerializerGenerator(processedSerializers);
             SchemaGenerator schemaGenerator = new SchemaGenerator(schema_dir);
             DeserializerGenerator deserializerGenerator = new DeserializerGenerator(processedDeserializers);
             for (String typeName : sourceTypes) {

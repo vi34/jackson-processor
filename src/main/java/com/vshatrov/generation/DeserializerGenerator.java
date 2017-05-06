@@ -305,7 +305,9 @@ public class DeserializerGenerator {
                 .beginControlFlow("if (parser.currentToken() != JsonToken.START_OBJECT)")
                 .addStatement("$1T ret = new $1T()", property.getTName());
 
-        BeanDescription description = Inspector.getDescription(property.getTypeName());
+        BeanDescription description = Inspector.getDescription(property.getTypeName())
+                .orElseThrow(() -> new GenerationException("Couldn't access type information for " + property.getTypeName()));
+
         Property oldProperty = description.getProps().stream()
                 .filter(prop -> prop.getName().equals(property.getOldProperty()))
                 .findAny()
@@ -399,7 +401,7 @@ public class DeserializerGenerator {
             // TODO: add other collections
             builder.addStatement("$1T arr = new $2T<>()", property.getTName(), ClassName.get(ArrayList.class));
             builder.beginControlFlow("while (parser.nextToken() != JsonToken.END_ARRAY)");
-            String propVarName = addPropertyReading(builder, property.getElem());
+            String propVarName = addPropertyReading(builder, property.getElement());
             builder
                     .addStatement("arr.add($L)", propVarName)
                     .endControlFlow()
@@ -468,11 +470,11 @@ public class DeserializerGenerator {
             if (arrayProp.isPrimitiveArray()) {
                 deserType = ParameterizedTypeName.get(deserClass, arrayProp.getTName());
                 resolve.addStatement("$L = (JsonDeserializer<$T>) $T.forType($T.class)",
-                        deserializerName(arrayProp), arrayProp.getTName(), ClassName.get(PrimitiveArrayDeserializers.class), arrayProp.getElem().getTName());
+                        deserializerName(arrayProp), arrayProp.getTName(), ClassName.get(PrimitiveArrayDeserializers.class), arrayProp.getElement().getTName());
             } else {
                 deserType = TypeName.get(ObjectArrayDeserializer.class);
                 //TODO: think about recursive links
-                resolve.addStatement("arrayType = typeFactory.constructArrayType($L.class)", arrayProp.getElem().getTName());
+                resolve.addStatement("arrayType = typeFactory.constructArrayType($L.class)", arrayProp.getElement().getTName());
 
                 TypeSpec typeSpec = TypeSpec.anonymousClassBuilder("")
                         .addSuperinterface(ParameterizedTypeName.get(JsonDeserializer.class, Object.class))
@@ -480,17 +482,17 @@ public class DeserializerGenerator {
                                 .addParameter(JsonParser.class, "parser")
                                 .addParameter(DeserializationContext.class, "ctxt")
                                 .addException(IOException.class)
-                                .returns(arrayProp.getElem().getTName())
+                                .returns(arrayProp.getElement().getTName())
                                 .addModifiers(Modifier.PUBLIC)
-                                .addStatement("return $T.valueOf(parser.getText())", arrayProp.getElem().getTName())
+                                .addStatement("return $T.valueOf(parser.getText())", arrayProp.getElement().getTName())
                                 .build())
                         .build();
 
                 resolve.addStatement("$L = new $T(arrayType, $L, null)",
                         deserializerName(arrayProp), TypeName.get(ObjectArrayDeserializer.class),
-                        arrayProp.getElem() instanceof EnumProp
+                        arrayProp.getElement() instanceof EnumProp
                                 ? typeSpec
-                                : deserializerName(arrayProp.getElem()));
+                                : deserializerName(arrayProp.getElement()));
             }
 
             FieldSpec deserializer = FieldSpec.builder(deserType, deserializerName(arrayProp))
@@ -510,7 +512,7 @@ public class DeserializerGenerator {
 
     private String deserializerName(Property property) {
         if (property instanceof ArrayProp) {
-            return ((ArrayProp) property).getElem().getName().toLowerCase() + "_arrayDeserializer";
+            return ((ArrayProp) property).getElement().getName().toLowerCase() + "_arrayDeserializer";
         }
         return property.getName().toLowerCase() + "_deserializer";
     }

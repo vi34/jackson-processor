@@ -53,13 +53,14 @@ public class Inspector {
         return definition;
     }
 
-    public static BeanDescription getDescription(String typeName) {
+    public static Optional<BeanDescription> getDescription(String typeName) {
         if (beansCache.containsKey(typeName)) {
-            return beansCache.get(typeName);
+            return Optional.of(beansCache.get(typeName));
         }
 
         TypeElement typeElement = elementUtils.getTypeElement(typeName);
-        return new Inspector().inspect(typeElement);
+        if (typeElement == null) return Optional.empty();
+        return Optional.of(new Inspector().inspect(typeElement));
     }
 
     public BeanDescription addTypeElement(TypeElement element) {

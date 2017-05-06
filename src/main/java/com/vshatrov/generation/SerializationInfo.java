@@ -16,7 +16,6 @@ import java.util.*;
 public class SerializationInfo {
     String typeName;
     MethodSpec serializeMethod;
-    Map<String, SerializationInfo> props;
     Map<String, String> strings;
 
 
@@ -28,7 +27,6 @@ public class SerializationInfo {
 
     public SerializationInfo(String typeName) {
         this.typeName = typeName;
-        props = new HashMap<>();
         strings = new HashMap<>();
         provided = new HashSet<>();
     }

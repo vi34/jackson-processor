@@ -1,7 +1,6 @@
 package com.vshatrov.beans.properties;
 
 import com.vshatrov.schema.JsonType;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import javax.lang.model.element.VariableElement;
@@ -14,19 +13,19 @@ import java.util.function.Function;
 @Getter
 public class ContainerProp extends Property {
 
-    Property elem;
+    Property element;
 
     ContainerProp(VariableElement element, Property elem) {
         super(element);
-        this.elem = elem;
+        this.element = elem;
         elem.dynamicAccessor = Function.identity();
         jsonType = JsonType.ARRAY;
     }
 
-    ContainerProp(TypeMirror type, Property elem) {
+    ContainerProp(TypeMirror type, Property element) {
         super(type);
-        this.elem = elem;
-        elem.dynamicAccessor = Function.identity();
+        this.element = element;
+        element.dynamicAccessor = Function.identity();
         jsonType = JsonType.ARRAY;
     }
 }

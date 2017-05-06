@@ -53,7 +53,7 @@ public class SchemaGenerator {
         } else if (property instanceof ContainerProp) {
             schema = new ArraySchema();
             schema.setType(JsonType.ARRAY);
-            JsonSchema refSchema = createPropSchema(((ContainerProp) property).getElem());
+            JsonSchema refSchema = createPropSchema(((ContainerProp) property).getElement());
             ((ArraySchema)schema).setItems(refSchema);
         } else if (property instanceof EnumProp) {
             schema = new EnumSchema();
