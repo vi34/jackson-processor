@@ -1,5 +1,6 @@
 package com.vshatrov.beans;
 
+import com.squareup.javapoet.ClassName;
 import com.vshatrov.beans.properties.Property;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,6 @@ import java.util.List;
 @Setter
 public class BeanDescription {
 
-    String simpleName;
     String packageName;
     String typeName;
     TypeMirror type;
@@ -25,16 +25,21 @@ public class BeanDescription {
     List<Property> props;
     AnnotationMirror jsonSerialize;
     AnnotationMirror jsonDeserialize;
+    ClassName className;
 
     public BeanDescription(TypeElement element) {
         this.element = element;
-        simpleName = element.getSimpleName().toString();
         String qualified = element.getQualifiedName().toString();
         int dot = qualified.lastIndexOf(".");
         packageName = dot > 0 ? qualified.substring(0, dot) : "";
         props = new ArrayList<>();
         type = element.asType();
         typeName = type.toString();
+        className = ClassName.get(element);
+    }
+
+    public String getSimpleName() {
+        return className.simpleName();
     }
 
 

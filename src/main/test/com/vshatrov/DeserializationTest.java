@@ -45,7 +45,6 @@ public class DeserializationTest {
         Assert.assertTrue(loadDeserializer(WithString.class, mapper));
 
         WithString val = new WithString(1, 1.2, "str", "name");
-
         check(val, WithString.class);
     }
 

@@ -62,7 +62,7 @@ public class Compilation {
 
     static <T> boolean loadSerializer(Class<? extends T> type, ObjectMapper mapper) {
         try {
-            String className = type.getPackage().getName() + SerializerGenerator.PACKAGE_MODIFIER
+            String className = "com.vshatrov" + SerializerGenerator.PACKAGE_MODIFIER
                     + "." + type.getSimpleName()  + SerializerGenerator.SUFFIX;
             SimpleModule module = new SimpleModule();
             module.addSerializer(type, (JsonSerializer<T>) classLoader.loadClass(className).newInstance());
@@ -76,7 +76,7 @@ public class Compilation {
 
     static <T> boolean loadDeserializer(Class<T> type, ObjectMapper mapper) {
         try {
-            String className = type.getPackage().getName() + DeserializerGenerator.PACKAGE_MODIFIER
+            String className = "com.vshatrov" + DeserializerGenerator.PACKAGE_MODIFIER
                                 + "." + type.getSimpleName() + DeserializerGenerator.SUFFIX;
             SimpleModule module = new SimpleModule();
             module.addDeserializer(type, (JsonDeserializer<T>) classLoader.loadClass(className).newInstance());

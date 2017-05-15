@@ -6,10 +6,10 @@
 
     <groupId>com.vshatrov</groupId>
     <artifactId>jackson-processor</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
-        <jackson.version>2.8.5</jackson.version>
+        <jackson.version>2.9.0.pr2</jackson.version>
         <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
     </properties>
 

@@ -28,7 +28,7 @@ import static com.vshatrov.utils.Utils.filer;
  * @author Viktor Shatrov.
  */
 public class DeserializerGenerator {
-    public static final String PACKAGE_MODIFIER = "";
+    public static final String PACKAGE_MODIFIER = ".generated.deserializers";
     public static final String SUFFIX = "Deserializer";
     public static final String MAPPING_VAR = "fullFieldToIndex";
 
@@ -41,31 +41,35 @@ public class DeserializerGenerator {
         this.processed = processed;
     }
 
+    public static String getPackageName(BeanDescription unit) {
+        return "com.vshatrov" + PACKAGE_MODIFIER;
+        //return unit.getPackageName() + PACKAGE_MODIFIER;
+    }
+
 
     public DeserializationInfo generateDeserializer(BeanDescription unit) throws IOException, GenerationException {
         currentDeserInfo = new DeserializationInfo(unit);
         ClassName stdDeserializer = ClassName.get(StdDeserializer.class);
-        ClassName beanClass = ClassName.get(unit.getPackageName(), unit.getSimpleName());
 
         MethodSpec deserialize = MethodSpec.methodBuilder("deserialize")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .addParameter(JsonParser.class, "parser")
                 .addParameter(DeserializationContext.class, "ctxt")
-                .returns(beanClass)
+                .returns(unit.getClassName())
                 .addException(IOException.class)
                 .addStatement("return $L(parser, ctxt)", readMethodName(unit.getSimpleName()))
                 .build();
 
         TypeSpec.Builder deserializerBuilder = TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .superclass(ParameterizedTypeName.get(stdDeserializer, beanClass))
+                .superclass(ParameterizedTypeName.get(stdDeserializer, unit.getClassName()))
                 .addSuperinterface(ClassName.get(ResolvableDeserializer.class))
                 .addMethod(deserialize);
 
-        addConstructors(deserializerBuilder, beanClass);
+        addConstructors(deserializerBuilder, unit.getClassName());
 
-        MethodSpec deserImpl = addDeserializeImplementation(beanClass);
+        MethodSpec deserImpl = addDeserializeImplementation(unit.getClassName());
         deserializerBuilder.addMethod(deserImpl);
 
         generateConstants(deserializerBuilder);
@@ -75,7 +79,7 @@ public class DeserializerGenerator {
 
         currentDeserInfo.getReadMethods().values().forEach(deserializerBuilder::addMethod);
 
-        JavaFile javaFile = JavaFile.builder(unit.getPackageName() + PACKAGE_MODIFIER, deserializerBuilder.build())
+        JavaFile javaFile = JavaFile.builder(getPackageName(unit), deserializerBuilder.build())
                 .indent("    ")
                 .build();
 
@@ -177,14 +181,13 @@ public class DeserializerGenerator {
                 .returns(beanClass)
                 .addException(IOException.class);
 
-        String varName = "_" + currentDeserInfo.getUnit().getSimpleName().toLowerCase();
-        deserializeImpl.addStatement("$1T $2L = new $1T()", beanClass, varName);
+        String varName = instantiate(beanClass, deserializeImpl);
 
         currentDeserInfo.getPrimitiveProps().forEach((name, prop) -> {
             deserializeImpl.addStatement("boolean $L = false", presenceFlag(name));
         });
 
-        genFastVersion(deserializeImpl, varName, 0);
+        genFastParsing(deserializeImpl, varName, 0);
 
         genCommonParsing(deserializeImpl, varName);
 
@@ -207,6 +210,13 @@ public class DeserializerGenerator {
 
         deserializeImpl.addStatement("return $L", varName);
         return deserializeImpl.build();
+    }
+
+    private String instantiate(ClassName beanClass, MethodSpec.Builder deserializeImpl) {
+        String varName = "_" + currentDeserInfo.getUnit().getSimpleName().toLowerCase();
+
+        deserializeImpl.addStatement("$1T $2L = new $1T()", beanClass, varName);
+        return varName;
     }
 
     private void genCommonParsing(MethodSpec.Builder deserializeImpl, String varName) throws GenerationException {
@@ -234,7 +244,7 @@ public class DeserializerGenerator {
     }
 
 
-    private void genFastVersion(MethodSpec.Builder deserializeImpl, String varName, int propIndex) throws GenerationException {
+    private void genFastParsing(MethodSpec.Builder deserializeImpl, String varName, int propIndex) throws GenerationException {
         Property property = currentDeserInfo.getUnit().getProps().get(propIndex);
 
         deserializeImpl
@@ -245,7 +255,7 @@ public class DeserializerGenerator {
         assignObjectsProperty(deserializeImpl, varName, property, propVarName, true);
 
         if (propIndex + 1 < currentDeserInfo.getUnit().getProps().size()) {
-            genFastVersion(deserializeImpl, varName, propIndex + 1);
+            genFastParsing(deserializeImpl, varName, propIndex + 1);
         } else {
             deserializeImpl
                     .addStatement("parser.nextToken()")
@@ -347,7 +357,7 @@ public class DeserializerGenerator {
 
     private MethodSpec mapRead(MapProp property) throws GenerationException {
         MethodSpec.Builder builder = MethodSpec
-                .methodBuilder("read_" + property.getName())
+                .methodBuilder("read_map_" + property.getName())
                 .addModifiers(Modifier.PRIVATE)
                 .returns(property.getTName())
                 .addParameter(JsonParser.class, "parser")
@@ -385,7 +395,7 @@ public class DeserializerGenerator {
 
     private MethodSpec containerRead(ContainerProp property) throws GenerationException {
         MethodSpec.Builder builder = MethodSpec
-                .methodBuilder("read_" + property.getName())
+                .methodBuilder("read_container_" + property.getName())
                 .addModifiers(Modifier.PRIVATE)
                 .returns(property.getTName())
                 .addParameter(JsonParser.class, "parser")

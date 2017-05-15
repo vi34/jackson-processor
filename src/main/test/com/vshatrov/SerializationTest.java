@@ -148,7 +148,7 @@ public class SerializationTest {
 
     @Test
     public void maps() throws IOException {
-        //Assert.assertTrue(loadSerializer(Maps.class, mapper));
+        Assert.assertTrue(loadSerializer(Maps.class, mapper));
 
         Map<String, String> props = new HashMap<>();
         props.put("a", "1");

@@ -1,10 +1,12 @@
 package com.vshatrov.utils;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Names;
+import com.vshatrov.JacksonProcessor;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -44,12 +46,15 @@ public class Utils {
     }
 
 
-    public static void warning(Messager messager, Element e, String msg, Object... args) {
+    public static void warning(Exception e, String msg, Object... args) {
+        if (JacksonProcessor.DEBUG) {
+            e.printStackTrace();
+        }
         if (msg != null) {
             messager.printMessage(
                     Diagnostic.Kind.WARNING,
                     String.format(msg, args),
-                    e);
+                    null);
         }
     }
 
@@ -82,13 +87,8 @@ public class Utils {
         return kind == INT || kind == LONG || kind == SHORT || kind == BYTE || kind == DOUBLE || kind == FLOAT;
     }
 
-    public static Optional<Object> extractAnnotationValue(AnnotationMirror annotation, String key) {
-        return annotation.getElementValues().entrySet().stream().filter(p -> p.getKey().toString().equals(key))
-                .findAny().map(p -> p.getValue().getValue());
-    }
-
-    public static Optional<? extends AnnotationMirror> getAnnotation(Element symbol, Class<?> annType) {
-            return symbol.getAnnotationMirrors().stream()
+    public static Optional<? extends AnnotationMirror> getAnnotationMirror(Element symbol, Class<?> annType) {
+        return symbol.getAnnotationMirrors().stream()
                     .filter(ann -> ann.getAnnotationType().toString().equals(annType.getCanonicalName()))
                     .findAny();
     }

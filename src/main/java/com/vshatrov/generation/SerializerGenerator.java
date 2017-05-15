@@ -29,12 +29,9 @@ import static com.vshatrov.utils.Utils.*;
  */
 public class SerializerGenerator {
 
-    //TODO: correct Character serialization/deserialization
-    //TODO: java.util.Date
-
     public static final String SUFFIX = "Serializer";
     //TODO: investigate package fields access
-    public static final String PACKAGE_MODIFIER = ""; // in case of different package, miss package-access values
+    public static final String PACKAGE_MODIFIER = ".generated.serializers"; // in case of different package, miss package-access values
     private Map<String, SerializationInfo> processed;
     private SerializationInfo currentSerializationInfo;
 
@@ -79,7 +76,7 @@ public class SerializerGenerator {
 
         addResolve(serializerClassBuilder);
 
-        JavaFile javaFile = JavaFile.builder(unit.getPackageName() + PACKAGE_MODIFIER, serializerClassBuilder.build())
+        JavaFile javaFile = JavaFile.builder(getPackageName(unit), serializerClassBuilder.build())
                 .indent("    ")
                 .build();
 
@@ -89,6 +86,11 @@ public class SerializerGenerator {
         processed.put(unit.getTypeName(), currentSerializationInfo);
 
         return currentSerializationInfo;
+    }
+
+    public static String getPackageName(BeanDescription unit) {
+        return "com.vshatrov" + PACKAGE_MODIFIER;
+        //return unit.getPackageName() + PACKAGE_MODIFIER;
     }
 
     private MethodSpec addSerializeImplementation(BeanDescription unit, ClassName beanClass) throws IOException, GenerationException {
@@ -182,7 +184,7 @@ public class SerializerGenerator {
         } else if (property instanceof MapProp) {
             writeMap((MapProp) property, method, propVar);
         } else if (property.isSimple()) {
-            method.addStatement("gen.$L", property.genMethod(objectVarName));
+            method.addStatement("gen.$L", property.writeMethod(objectVarName));
         } else {
             method.beginControlFlow("if ($L != null)", propVar)
                     .addStatement("$L.serialize($L, gen, provider)", convertToSerializerName(property), propVar)
@@ -202,7 +204,7 @@ public class SerializerGenerator {
                 .addStatement("gen.writeStartObject()")
                 .beginControlFlow("for ($T<$T,$T> $L : $L.entrySet())", ClassName.get(Map.Entry.class),
                         key.getTName(), value.getTName(), var, propVarName)
-                .addStatement("gen.writeFieldName($L)", key.genMethod(var));
+                .addStatement("gen.writeFieldName($L)", key.writeMethod(var));
 
         addProperty(value, method, var, false);
 

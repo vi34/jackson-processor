@@ -1,5 +1,6 @@
 package com.vshatrov;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.service.AutoService;
@@ -8,20 +9,25 @@ import com.sun.source.util.Trees;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.util.*;
+import com.sun.tools.javac.util.Names;
 import com.vshatrov.beans.BeanDescription;
 import com.vshatrov.beans.Inspector;
 import com.vshatrov.generation.*;
 import com.vshatrov.utils.Utils;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.io.BufferedWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static com.vshatrov.utils.Utils.*;
@@ -37,15 +43,22 @@ import static com.vshatrov.utils.Utils.*;
 })
 public class JacksonProcessor extends AbstractProcessor {
 
-    private static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     public static final String DEFAULT_SCHEMA_DIR = "./json-schema";
     public static final String JSON_DESERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonDeserialize";
     public static final String JSON_SERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonSerialize";
+    public static final String JACKSON_ANNOTATIONS_PACKAGE = JsonProperty.class.getPackage().getName();
+
+    public boolean autoRegistration;
     private Map<String, SerializationInfo> processedSerializers;
     private Map<String, DeserializationInfo> processedDeserializers;
+    public String schema_dir;
+    public static UnknownAnnotationsRule annotationsRule = UnknownAnnotationsRule.FAIL;
 
-    private boolean autoRegistration;
-    private String schema_dir;
+    public enum UnknownAnnotationsRule {
+        FAIL,
+        SKIP
+    }
 
 
     @Override
@@ -76,51 +89,82 @@ public class JacksonProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
-            List<String> sourceTypes = new ArrayList<>();
+            Set<String> serializeTypes = new HashSet<>();
+            Set<String> deSerializeTypes = new HashSet<>();
             Stream.concat(roundEnv.getElementsAnnotatedWith(JsonSerialize.class).stream(),
                     roundEnv.getElementsAnnotatedWith(JsonDeserialize.class).stream())
                     .forEach( annotatedElement -> {
                         if (annotatedElement.getKind() == ElementKind.CLASS) {
                             TypeElement typeElement = (TypeElement) annotatedElement;
-                            new Inspector().addTypeElement(typeElement);
-                            sourceTypes.add(typeElement.asType().toString());
+                            new Inspector().addForInspection(typeElement);
                         }
                     });
 
+            roundEnv.getElementsAnnotatedWith(JsonSerialize.class)
+                    .forEach(el -> serializeTypes.add(el.asType().toString()));
+
+            roundEnv.getElementsAnnotatedWith(JsonDeserialize.class)
+                    .forEach(el -> deSerializeTypes.add(el.asType().toString()));
 
             SerializerGenerator generator = new SerializerGenerator(processedSerializers);
             SchemaGenerator schemaGenerator = new SchemaGenerator(schema_dir);
             DeserializerGenerator deserializerGenerator = new DeserializerGenerator(processedDeserializers);
-            for (String typeName : sourceTypes) {
-                BeanDescription bean = Inspector.beansCache.get(typeName);
-                try {
-                    if (!processedSerializers.containsKey(typeName)) {
-                        SerializationInfo serializationInfo = generator.generateSerializer(bean);
-                        if (autoRegistration) {
-                            attachSerializer(bean, serializationInfo);
+
+            for (String typeName : serializeTypes) {
+                Inspector.getDescription(typeName).ifPresent(bean -> {
+                    try {
+                        if (!processedSerializers.containsKey(typeName)) {
+                            SerializationInfo serializationInfo = generator.generateSerializer(bean);
+                            if (autoRegistration) {
+                                attachSerializer(bean, serializationInfo);
+                            }
                         }
+                        schemaGenerator.generateSchema(bean);
+                    } catch (Exception e1) {
+                        messager.printMessage(Diagnostic.Kind.WARNING,
+                                "Error during generation for " + bean.getSimpleName());
+                        Utils.warning(e1, e1.getMessage());
                     }
-                    if (!processedDeserializers.containsKey(typeName)) {
-                        DeserializationInfo deserializationInfo = deserializerGenerator.generateDeserializer(bean);
-                        if (autoRegistration) {
-                            attachDeserializer(bean, deserializationInfo);
-                        }
-                    }
-                    schemaGenerator.generateSchema(bean);
-                } catch (Exception e1) {
-                    messager.printMessage(Diagnostic.Kind.WARNING,
-                            "Error during generation for " + bean.getSimpleName());
-                    if (DEBUG) {
-                        e1.printStackTrace();
-                    }
-                    Utils.warning(messager, null, e1.getMessage());
-                }
+                });
             }
 
+            for (String typeName : deSerializeTypes) {
+                Inspector.getDescription(typeName).ifPresent(bean -> {
+                    try {
+                        if (!processedDeserializers.containsKey(typeName)) {
+                            DeserializationInfo deserializationInfo = deserializerGenerator.generateDeserializer(bean);
+                            if (autoRegistration) {
+                                attachDeserializer(bean, deserializationInfo);
+                            }
+                        }
+                        schemaGenerator.generateSchema(bean);
+                    } catch (Exception e1) {
+                        messager.printMessage(Diagnostic.Kind.WARNING,
+                                "Error during generation for " + bean.getSimpleName());
+                        Utils.warning(e1, e1.getMessage());
+                    }
+                });
+            }
+
+           try(BufferedWriter serializers = Files.newBufferedWriter(Paths.get("GeneratedSerializers.txt"));
+               BufferedWriter deserializers = Files.newBufferedWriter(Paths.get("GeneratedDeserializers.txt")))
+           {
+               for (SerializationInfo ser : processedSerializers.values()) {
+                   JavaFile serializerFile = ser.getSerializerFile();
+                   serializers.write(serializerFile.packageName + "." +
+                           serializerFile.typeSpec.name + "\n");
+               }
+               for (DeserializationInfo deserializationInfo : processedDeserializers.values()) {
+                   JavaFile deserFile = deserializationInfo.getJavaFile();
+                   deserializers.write(deserFile.packageName + "." +
+                           deserFile.typeSpec.name + "\n");
+               }
+
+           }
         } catch (Exception e) {
-            e.printStackTrace();
-            Utils.warning(messager, null, e.getMessage());
+            Utils.warning(e, e.getMessage());
         }
+
         return true;
     }
 
@@ -130,7 +174,7 @@ public class JacksonProcessor extends AbstractProcessor {
         JCTree.JCExpression serializer = treeMaker.Select(selector, names.fromString(javaFile.typeSpec.name));
         TypeElement element = beanDescription.getElement();
 
-        Optional<? extends AnnotationMirror> annotation = Utils.getAnnotation(element, annotationName);
+        Optional<? extends AnnotationMirror> annotation = Utils.getAnnotationMirror(element, annotationName);
         annotation.ifPresent((ann) -> {
             JCTree.JCAnnotation annotationTree = ((JCTree.JCAnnotation)trees.getTree(element, ann));
             JCTree.JCAssign usingAssign = null;
@@ -166,5 +210,11 @@ public class JacksonProcessor extends AbstractProcessor {
         return SourceVersion.latestSupported();
     }
 
-
+    public static Set<String> getSupportedJacksonAnnotations() {
+        Set<String> set = new HashSet<>();
+        set.add(JsonDeserialize.class.getCanonicalName());
+        set.add(JsonSerialize.class.getCanonicalName());
+        set.add(JsonProperty.class.getCanonicalName());
+        return set;
+    }
 }

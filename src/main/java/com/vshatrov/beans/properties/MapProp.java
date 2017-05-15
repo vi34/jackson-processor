@@ -57,7 +57,7 @@ public class MapProp extends Property {
         }
 
         @Override
-        public String genMethod(String varName) throws GenerationException {
+        public String writeMethod(String varName) throws GenerationException {
             return modifyAccess(getAccessor(varName));
         }
 

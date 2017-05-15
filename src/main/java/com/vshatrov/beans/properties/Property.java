@@ -112,7 +112,7 @@ public class Property {
     }
 
     //TODO handle more types. Watch JsonGenerator._writeSimpleObject
-    public String genMethod(String varName) throws GenerationException {
+    public String writeMethod(String varName) throws GenerationException {
         String accessor = modifyAccess(getAccessor(varName));
 
         switch (jsonType) {
@@ -135,13 +135,13 @@ public class Property {
             case LONG:
                 return parser + ".getLongValue()";
             case SHORT:
-                return "_parseShort(" + parser + ", ctxt)";
+                return "_parseShortPrimitive(" + parser + ", ctxt)";
             case DOUBLE:
-                return "_parseDouble(" + parser + ", ctxt)";
+                return "_parseDoublePrimitive(" + parser + ", ctxt)";
             case FLOAT:
-                return "_parseFloat(" + parser + ", ctxt)";
+                return "_parseFloatPrimitive(" + parser + ", ctxt)";
             case BYTE:
-                return "_parseByte(" + parser + ", ctxt)";
+                return "_parseBytePrimitive(" + parser + ", ctxt)";
             default:
                 if (typeName.equals("java.lang.String")) {
                     return parser + ".getText()";
