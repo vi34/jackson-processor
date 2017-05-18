@@ -20,6 +20,7 @@ import com.vshatrov.utils.Utils;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.*;
 
 import static com.vshatrov.utils.Utils.filer;
@@ -294,8 +295,9 @@ public class DeserializerGenerator {
             readMethod.addStatement("$N(parser, ctxt)", withOldTypeRead);
             currentDeserInfo.getReadMethods().put(withOldTypeRead.name, withOldTypeRead);
         } else {
-            readMethod.addStatement("($1T) $2L.deserialize(parser, ctxt)", property.getTName(), deserializerName(property));
-            currentDeserInfo.getProvided().add(property);
+            readMethod.addStatement("($1T) $2L.deserialize(parser, ctxt)",
+                                    property.getTName(), deserializerName(property.getTName()));
+            currentDeserInfo.getProvided().add(property.getTName());
         }
 
         return propVarName;
@@ -408,7 +410,6 @@ public class DeserializerGenerator {
         if (property instanceof ArrayProp) {
            addArrayReading(builder, (ArrayProp) property);
         } else {
-            // TODO: add other collections
             builder.addStatement("$1T arr = new $2T<>()", property.getTName(), ClassName.get(ArrayList.class));
             builder.beginControlFlow("while (parser.nextToken() != JsonToken.END_ARRAY)");
             String propVarName = addPropertyReading(builder, property.getElement());
@@ -423,10 +424,10 @@ public class DeserializerGenerator {
     }
 
     private void addArrayReading(MethodSpec.Builder builder, ArrayProp property) {
-        //TODO: StringArrayDeserializer
         currentDeserInfo.getProvidedArrays().add(property);
 
-        builder.addStatement("$1T arr = ($1T) $2L.deserialize(parser, ctxt)", property.getTName(), deserializerName(property))
+        builder.addStatement("$1T arr = ($1T) $2L.deserialize(parser, ctxt)",
+                                property.getTName(), deserializerName(property.getTName()))
                 .addStatement("return arr");
     }
 
@@ -461,13 +462,13 @@ public class DeserializerGenerator {
                 .addStatement("$1T typeFactory = $1T.defaultInstance()", ClassName.get(TypeFactory.class));
 
         ClassName deserClass = ClassName.get(JsonDeserializer.class);
-        currentDeserInfo.getProvided().forEach((prop) -> {
+        currentDeserInfo.getProvided().forEach((typeName) -> {
             resolve.addStatement("javaType = typeFactory.constructType(new $T<$L>(){})",
-                        ClassName.get(TypeReference.class), prop.getTName()); //TODO check map resolving problems
-            resolve.addStatement("$L = ctxt.findNonContextualValueDeserializer(javaType)", deserializerName(prop));
+                        ClassName.get(TypeReference.class), typeName);
+            resolve.addStatement("$L = ctxt.findNonContextualValueDeserializer(javaType)", deserializerName(typeName));
 
             ParameterizedTypeName deserType = ParameterizedTypeName.get(deserClass, TypeName.get(Object.class));
-            FieldSpec deserializer = FieldSpec.builder(deserType, deserializerName(prop))
+            FieldSpec deserializer = FieldSpec.builder(deserType, deserializerName(typeName))
                     .addModifiers(Modifier.PRIVATE)
                     .build();
             deserializerBuilder.addField(deserializer);
@@ -480,10 +481,9 @@ public class DeserializerGenerator {
             if (arrayProp.isPrimitiveArray()) {
                 deserType = ParameterizedTypeName.get(deserClass, arrayProp.getTName());
                 resolve.addStatement("$L = (JsonDeserializer<$T>) $T.forType($T.class)",
-                        deserializerName(arrayProp), arrayProp.getTName(), ClassName.get(PrimitiveArrayDeserializers.class), arrayProp.getElement().getTName());
+                        deserializerName(arrayProp.getTName()), arrayProp.getTName(), ClassName.get(PrimitiveArrayDeserializers.class), arrayProp.getElement().getTName());
             } else {
                 deserType = TypeName.get(ObjectArrayDeserializer.class);
-                //TODO: think about recursive links
                 resolve.addStatement("arrayType = typeFactory.constructArrayType($L.class)", arrayProp.getElement().getTName());
 
                 TypeSpec typeSpec = TypeSpec.anonymousClassBuilder("")
@@ -499,13 +499,13 @@ public class DeserializerGenerator {
                         .build();
 
                 resolve.addStatement("$L = new $T(arrayType, $L, null)",
-                        deserializerName(arrayProp), TypeName.get(ObjectArrayDeserializer.class),
+                        deserializerName(arrayProp.getTName()), TypeName.get(ObjectArrayDeserializer.class),
                         arrayProp.getElement() instanceof EnumProp
                                 ? typeSpec
-                                : deserializerName(arrayProp.getElement()));
+                                : deserializerName(arrayProp.getElement().getTName()));
             }
 
-            FieldSpec deserializer = FieldSpec.builder(deserType, deserializerName(arrayProp))
+            FieldSpec deserializer = FieldSpec.builder(deserType, deserializerName(arrayProp.getTName()))
                     .addModifiers(Modifier.PRIVATE)
                     .build();
             deserializerBuilder.addField(deserializer);
@@ -520,11 +520,11 @@ public class DeserializerGenerator {
         return "have_" + name;
     }
 
-    private String deserializerName(Property property) {
-        if (property instanceof ArrayProp) {
-            return ((ArrayProp) property).getElement().getName().toLowerCase() + "_arrayDeserializer";
-        }
-        return property.getName().toLowerCase() + "_deserializer";
+    private String deserializerName(TypeName typeName) {
+       String res;
+       String simple = Utils.qualifiedToSimple(typeName.toString());
+       res = Character.toLowerCase(simple.charAt(0)) + simple.substring(1) + "_deserializer";
+       return typeName instanceof ArrayTypeName ? "ar_" + res : res;
     }
 
     private String readMethodName(String name) {

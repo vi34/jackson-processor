@@ -16,10 +16,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static com.vshatrov.Compilation.loadDeserializer;
 
@@ -123,7 +120,7 @@ public class DeserializationTest {
     public void resolveUnknown() throws IOException {
         Assert.assertTrue(loadDeserializer(Resolve.class, mapper));
 
-        Resolve val = new Resolve("resolve", new UnknownClass(999, "unknown"));
+        Resolve val = Resolve.make();
 
         check(val, Resolve.class);
     }
@@ -136,7 +133,7 @@ public class DeserializationTest {
 
         check(val, Resolve.class);
 
-        val = new Resolve("resolve", null);
+        val = new Resolve("resolve", null, new ArrayList<>());
         check(val, Resolve.class);
 
         Assert.assertTrue(loadDeserializer(Complex.class, mapper));

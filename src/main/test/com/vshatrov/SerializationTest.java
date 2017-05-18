@@ -107,7 +107,7 @@ public class SerializationTest {
     public void resolveUnknown() throws IOException {
         Assert.assertTrue(loadSerializer(Resolve.class, mapper));
 
-        Resolve val = new Resolve("resolve", new UnknownClass(999, "unknown"));
+        Resolve val = Resolve.make();
 
         check(val, Resolve.class);
     }
@@ -120,7 +120,7 @@ public class SerializationTest {
 
         check(val, Resolve.class);
 
-        val = new Resolve("resolve", null);
+        val = new Resolve("resolve", null, null);
         check(val, Resolve.class);
 
         Assert.assertTrue(loadSerializer(Complex.class, mapper));

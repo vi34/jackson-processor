@@ -20,6 +20,7 @@ import com.vshatrov.utils.Utils;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.Map;
 
 import static com.vshatrov.utils.Utils.*;
@@ -30,7 +31,6 @@ import static com.vshatrov.utils.Utils.*;
 public class SerializerGenerator {
 
     public static final String SUFFIX = "Serializer";
-    //TODO: investigate package fields access
     public static final String PACKAGE_MODIFIER = ".generated.serializers"; // in case of different package, miss package-access values
     private Map<String, SerializationInfo> processed;
     private SerializationInfo currentSerializationInfo;
@@ -140,20 +140,19 @@ public class SerializerGenerator {
                 .addStatement("$T javaType", ClassName.get(JavaType.class))
                 .addStatement("$1T typeFactory = $1T.defaultInstance()", ClassName.get(TypeFactory.class));
 
-        currentSerializationInfo.getProvided().forEach((prop) -> {
+        currentSerializationInfo.getProvided().forEach((typeName) -> {
             ParameterizedTypeName type = ParameterizedTypeName.get(ClassName.get(JsonSerializer.class), ClassName.get(Object.class));
-            String serName = convertToSerializerName(prop);
+            String serName = convertToSerializerName(typeName);
             FieldSpec serDef = FieldSpec.builder(type, serName, Modifier.PRIVATE)
                     .build();
             serializerBuilder.addField(serDef);
 
             resolve.addStatement("javaType = typeFactory.constructType(new $T<$T>(){})",
-                    ClassName.get(TypeReference.class), prop.getTName());
+                    ClassName.get(TypeReference.class), typeName);
             resolve.addStatement("$L = provider.findValueSerializer(javaType)", serName);
         });
 
         serializerBuilder.addMethod(resolve.build());
-
 
     }
 
@@ -161,7 +160,6 @@ public class SerializerGenerator {
         return "write_"+name.toLowerCase();
     }
 
-    //TODO handle AtomicLong, BigDecimal, ...
     // TODO handle null options
     // TODO byte arrays - writeBinary
     /**
@@ -187,11 +185,11 @@ public class SerializerGenerator {
             method.addStatement("gen.$L", property.writeMethod(objectVarName));
         } else {
             method.beginControlFlow("if ($L != null)", propVar)
-                    .addStatement("$L.serialize($L, gen, provider)", convertToSerializerName(property), propVar)
+                    .addStatement("$L.serialize($L, gen, provider)", convertToSerializerName(property.getTName()), propVar)
                     .nextControlFlow("else")
                     .addStatement("gen.writeNull()")
                     .endControlFlow();
-            currentSerializationInfo.getProvided().add(property);
+            currentSerializationInfo.getProvided().add(property.getTName());
         }
     }
 
@@ -238,8 +236,8 @@ public class SerializerGenerator {
         return "FIELD_" + name.toUpperCase();
     }
 
-    private String convertToSerializerName(Property property) {
-        String simple = Utils.qualifiedToSimple(property.getTypeName());
+    private String convertToSerializerName(TypeName typeName) {
+        String simple = Utils.qualifiedToSimple(typeName.toString());
         return Character.toLowerCase(simple.charAt(0)) + simple.substring(1) + "Serializer";
     }
 
