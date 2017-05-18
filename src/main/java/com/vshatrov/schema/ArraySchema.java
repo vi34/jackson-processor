@@ -1,14 +1,17 @@
 package com.vshatrov.schema;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * @author Viktor Shatrov.
  */
 public class ArraySchema extends JsonSchema {
 
-    @Getter
-    @Setter
     JsonSchema items;
+
+    public JsonSchema getItems() {
+        return this.items;
+    }
+
+    public void setItems(JsonSchema items) {
+        this.items = items;
+    }
 }

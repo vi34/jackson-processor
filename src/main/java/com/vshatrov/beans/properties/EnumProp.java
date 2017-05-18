@@ -2,7 +2,6 @@ package com.vshatrov.beans.properties;
 
 import com.vshatrov.GenerationException;
 import com.vshatrov.schema.JsonType;
-import lombok.EqualsAndHashCode;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;

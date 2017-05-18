@@ -1,24 +1,15 @@
 package com.vshatrov.raw.annotations;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.vshatrov.annotations.OldProperty;
 import com.vshatrov.raw.Pojo;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 /**
  * @author Viktor Shatrov.
  */
 @JsonSerialize
 @JsonDeserialize
-@AllArgsConstructor
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
 public class TypeChange {
 
     //@JsonFilter("")
@@ -26,4 +17,45 @@ public class TypeChange {
 
     @OldProperty("i1")
     public Pojo pojo;
+
+    @java.beans.ConstructorProperties({"name", "pojo"})
+    public TypeChange(String name, Pojo pojo) {
+        this.name = name;
+        this.pojo = pojo;
+    }
+
+    public TypeChange() {
+    }
+
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof TypeChange)) return false;
+        final TypeChange other = (TypeChange) o;
+        if (!other.canEqual((Object) this)) return false;
+        final Object this$name = this.name;
+        final Object other$name = other.name;
+        if (this$name == null ? other$name != null : !this$name.equals(other$name)) return false;
+        final Object this$pojo = this.pojo;
+        final Object other$pojo = other.pojo;
+        if (this$pojo == null ? other$pojo != null : !this$pojo.equals(other$pojo)) return false;
+        return true;
+    }
+
+    public int hashCode() {
+        final int PRIME = 59;
+        int result = 1;
+        final Object $name = this.name;
+        result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+        final Object $pojo = this.pojo;
+        result = result * PRIME + ($pojo == null ? 43 : $pojo.hashCode());
+        return result;
+    }
+
+    protected boolean canEqual(Object other) {
+        return other instanceof TypeChange;
+    }
+
+    public String toString() {
+        return "com.vshatrov.raw.annotations.TypeChange(name=" + this.name + ", pojo=" + this.pojo + ")";
+    }
 }

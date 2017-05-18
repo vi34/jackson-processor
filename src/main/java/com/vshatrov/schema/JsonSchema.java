@@ -1,8 +1,6 @@
 package com.vshatrov.schema;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,33 +18,20 @@ public class JsonSchema {
         required = new ArrayList<>();
     }
 
-    @Getter
-    @Setter
     String $schema = "http://json-schema.org/draft-04/schema#";
 
-    @Getter
-    @Setter
     String $ref;
 
-    @Setter
     String title;
 
-    @Getter
-    @Setter
     String id;
 
-    @Setter
-    @Getter
     JsonType type;
 
-    @Getter
     Map<String, JsonSchema> properties;
 
-    @Getter
     List<String> required;
 
-    @Getter
-    @Setter
     JsonSchema additionalProperties;
 
     public void addProp(String name, JsonSchema schema) {
@@ -55,4 +40,55 @@ public class JsonSchema {
     }
 
 
+    public String get$schema() {
+        return this.$schema;
+    }
+
+    public String get$ref() {
+        return this.$ref;
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public JsonType getType() {
+        return this.type;
+    }
+
+    public Map<String, JsonSchema> getProperties() {
+        return this.properties;
+    }
+
+    public List<String> getRequired() {
+        return this.required;
+    }
+
+    public JsonSchema getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    public void set$schema(String $schema) {
+        this.$schema = $schema;
+    }
+
+    public void set$ref(String $ref) {
+        this.$ref = $ref;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setType(JsonType type) {
+        this.type = type;
+    }
+
+    public void setAdditionalProperties(JsonSchema additionalProperties) {
+        this.additionalProperties = additionalProperties;
+    }
 }

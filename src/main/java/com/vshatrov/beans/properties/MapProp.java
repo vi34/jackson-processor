@@ -2,8 +2,6 @@ package com.vshatrov.beans.properties;
 
 import com.vshatrov.GenerationException;
 import com.vshatrov.schema.JsonType;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -11,7 +9,6 @@ import javax.lang.model.type.TypeMirror;
 /**
  * @author Viktor Shatrov.
  */
-@Getter
 public class MapProp extends Property {
 
     KeyProp key;
@@ -31,6 +28,14 @@ public class MapProp extends Property {
         this.value = value;
         value.dynamicAccessor = (var) -> var + ".getValue()";
         jsonType = JsonType.OBJECT;
+    }
+
+    public KeyProp getKey() {
+        return this.key;
+    }
+
+    public Property getValue() {
+        return this.value;
     }
 
     public static class KeyProp extends Property {

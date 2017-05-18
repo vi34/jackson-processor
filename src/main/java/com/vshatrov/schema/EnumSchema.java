@@ -1,7 +1,6 @@
 package com.vshatrov.schema;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Setter;
 
 /**
  * @author Viktor Shatrov.
@@ -9,6 +8,9 @@ import lombok.Setter;
 public class EnumSchema extends JsonSchema {
 
     @JsonProperty("enum")
-    @Setter
     String[] en;
+
+    public void setEn(String[] en) {
+        this.en = en;
+    }
 }

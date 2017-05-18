@@ -2,8 +2,6 @@ package com.vshatrov.beans;
 
 import com.squareup.javapoet.ClassName;
 import com.vshatrov.beans.properties.Property;
-import lombok.Getter;
-import lombok.Setter;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.TypeElement;
@@ -14,8 +12,6 @@ import java.util.List;
 /**
  * @author Viktor Shatrov.
  */
-@Getter
-@Setter
 public class BeanDescription {
 
     String packageName;
@@ -43,4 +39,67 @@ public class BeanDescription {
     }
 
 
+    public String getPackageName() {
+        return this.packageName;
+    }
+
+    public String getTypeName() {
+        return this.typeName;
+    }
+
+    public TypeMirror getType() {
+        return this.type;
+    }
+
+    public TypeElement getElement() {
+        return this.element;
+    }
+
+    public List<Property> getProps() {
+        return this.props;
+    }
+
+    public AnnotationMirror getJsonSerialize() {
+        return this.jsonSerialize;
+    }
+
+    public AnnotationMirror getJsonDeserialize() {
+        return this.jsonDeserialize;
+    }
+
+    public ClassName getClassName() {
+        return this.className;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
+
+    public void setType(TypeMirror type) {
+        this.type = type;
+    }
+
+    public void setElement(TypeElement element) {
+        this.element = element;
+    }
+
+    public void setProps(List<Property> props) {
+        this.props = props;
+    }
+
+    public void setJsonSerialize(AnnotationMirror jsonSerialize) {
+        this.jsonSerialize = jsonSerialize;
+    }
+
+    public void setJsonDeserialize(AnnotationMirror jsonDeserialize) {
+        this.jsonDeserialize = jsonDeserialize;
+    }
+
+    public void setClassName(ClassName className) {
+        this.className = className;
+    }
 }

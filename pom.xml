@@ -9,7 +9,7 @@
     <version>1.0</version>
 
     <properties>
-        <jackson.version>2.9.0.pr2</jackson.version>
+        <jackson.version>2.8.8</jackson.version>
         <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
     </properties>
 
@@ -29,11 +29,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.16.10</version>
-        </dependency>
         <dependency>
             <groupId>com.google.auto.service</groupId>
             <artifactId>auto-service</artifactId>
