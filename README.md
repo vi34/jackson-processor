@@ -16,12 +16,7 @@ To disable automatic registration for all classes set processor option _AUTO_REG
 #### Tests
 Tests integrated in main project. 
 
-For proper tests execution need to directly configure in project settings annotation processors (lombok) used in project.
-Otherwise JacksonProcessor will process tests before run, during compilation.  
-
-
-#### lombok
-Warning: if you use lombok for your data classes, you must delombok @Getter and @Setter annotations.
+For proper tests execution need to disable annotation processors for project. 
 
 ### Benchmarks
 
