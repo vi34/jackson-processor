@@ -12,6 +12,9 @@ serializer/deserializer. (_using_ property will be set)
 To disable automatic registration for particular class simply set _using=JsonSerializer.None.class_
 To disable automatic registration for all classes set processor option _AUTO_REGISTRATION=false_. 
 
+You can register generated classes through module:
+_mapper.registerModule(new APTModule());_
+
 
 #### Tests
 Tests integrated in main project. 

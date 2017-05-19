@@ -14,14 +14,14 @@ import java.util.List;
  */
 public class BeanDescription {
 
-    String packageName;
-    String typeName;
-    TypeMirror type;
-    TypeElement element;
-    List<Property> props;
-    AnnotationMirror jsonSerialize;
-    AnnotationMirror jsonDeserialize;
-    ClassName className;
+    private String packageName;
+    private String typeName;
+    private TypeMirror type;
+    private TypeElement element;
+    private List<Property> props;
+    private AnnotationMirror jsonSerialize;
+    private AnnotationMirror jsonDeserialize;
+    private ClassName className;
 
     public BeanDescription(TypeElement element) {
         this.element = element;

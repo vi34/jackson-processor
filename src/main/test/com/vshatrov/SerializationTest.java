@@ -57,7 +57,7 @@ public class SerializationTest {
     public void complex() throws IOException {
         Assert.assertTrue(loadSerializer(Complex.class, mapper));
 
-        Complex val = new Complex(1, new Pojo(1, 2));
+        Complex val = Complex.make();
 
         check(val, Complex.class);
     }

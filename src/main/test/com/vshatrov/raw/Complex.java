@@ -2,6 +2,11 @@ package com.vshatrov.raw;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.vshatrov.Compilation;
+
+import java.util.Random;
+
+import static com.vshatrov.Compilation.random;
 
 /**
  * @author Viktor Shatrov.
@@ -15,6 +20,10 @@ public class Complex {
     public Complex(int i1, Pojo pojo) {
         this.i1 = i1;
         this.pojo = pojo;
+    }
+
+    public static Complex make() {
+        return new Complex(random.nextInt(), Pojo.make());
     }
 
     public Complex() {

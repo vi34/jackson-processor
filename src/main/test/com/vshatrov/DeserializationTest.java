@@ -59,7 +59,7 @@ public class DeserializationTest {
     public void complex() throws IOException {
         Assert.assertTrue(loadDeserializer(Complex.class, mapper));
 
-        Complex val = new Complex(1, new Pojo(1, 2));
+        Complex val = Complex.make();
 
         check(val, Complex.class);
     }

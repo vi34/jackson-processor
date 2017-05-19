@@ -21,6 +21,7 @@ import com.vshatrov.utils.Utils;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.Map;
 
 import static com.vshatrov.utils.Utils.*;
@@ -40,7 +41,7 @@ public class SerializerGenerator {
     }
 
     public SerializationInfo generateSerializer(BeanDescription unit) throws IOException, GenerationException {
-        currentSerializationInfo = new SerializationInfo(unit.getTypeName());
+        currentSerializationInfo = new SerializationInfo(unit);
         ClassName stdSerializer = ClassName.get(StdSerializer.class);
         ClassName beanClass = ClassName.get(unit.getPackageName(), unit.getSimpleName());
 
@@ -120,7 +121,7 @@ public class SerializerGenerator {
                 .build();
 
         MethodSpec constrDef = MethodSpec.constructorBuilder()
-                .addStatement("this(null)")
+                .addStatement("this($T.class)", currentSerializationInfo.getUnit().getClassName())
                 .addModifiers(Modifier.PUBLIC)
                 .build();
 

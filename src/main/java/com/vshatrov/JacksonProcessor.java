@@ -25,6 +25,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -146,26 +147,30 @@ public class JacksonProcessor extends AbstractProcessor {
                 });
             }
 
-           try(BufferedWriter serializers = Files.newBufferedWriter(Paths.get("GeneratedSerializers.txt"));
-               BufferedWriter deserializers = Files.newBufferedWriter(Paths.get("GeneratedDeserializers.txt")))
-           {
-               for (SerializationInfo ser : processedSerializers.values()) {
-                   JavaFile serializerFile = ser.getSerializerFile();
-                   serializers.write(serializerFile.packageName + "." +
-                           serializerFile.typeSpec.name + "\n");
-               }
-               for (DeserializationInfo deserializationInfo : processedDeserializers.values()) {
-                   JavaFile deserFile = deserializationInfo.getJavaFile();
-                   deserializers.write(deserFile.packageName + "." +
-                           deserFile.typeSpec.name + "\n");
-               }
-
-           }
+            generateModuleFiles();
         } catch (Exception e) {
             Utils.warning(e, e.getMessage());
         }
 
         return true;
+    }
+
+    public void generateModuleFiles() throws IOException {
+        try(BufferedWriter serializers = Files.newBufferedWriter(Paths.get("GeneratedSerializers.txt"));
+            BufferedWriter deserializers = Files.newBufferedWriter(Paths.get("GeneratedDeserializers.txt")))
+        {
+            for (SerializationInfo ser : processedSerializers.values()) {
+                JavaFile serializerFile = ser.getSerializerFile();
+                serializers.write(serializerFile.packageName + "." +
+                        serializerFile.typeSpec.name + ":" + ser.getTypeName() + "\n");
+            }
+            for (DeserializationInfo deser : processedDeserializers.values()) {
+                JavaFile deserFile = deser.getJavaFile();
+                deserializers.write(deserFile.packageName + "." +
+                        deserFile.typeSpec.name +  ":" + deser.getTypeName() +  "\n");
+            }
+
+        }
     }
 
 

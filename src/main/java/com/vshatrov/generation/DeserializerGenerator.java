@@ -20,7 +20,6 @@ import com.vshatrov.utils.Utils;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.*;
 
 import static com.vshatrov.utils.Utils.filer;
@@ -441,7 +440,7 @@ public class DeserializerGenerator {
                 .build();
 
         MethodSpec constrDef = MethodSpec.constructorBuilder()
-                .addStatement("this(null)")
+                .addStatement("this($T.class)",  currentDeserInfo.getUnit().getClassName())
                 .addModifiers(Modifier.PUBLIC)
                 .build();
 

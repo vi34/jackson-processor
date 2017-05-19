@@ -3,6 +3,7 @@ package com.vshatrov.generation;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
+import com.vshatrov.beans.BeanDescription;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,25 +14,30 @@ import java.util.Set;
  * @author Viktor Shatrov.
  */
 public class SerializationInfo {
-    String typeName;
-    MethodSpec serializeMethod;
-    Map<String, String> strings;
+    private String typeName;
+    private MethodSpec serializeMethod;
+    private Map<String, String> strings;
+    private BeanDescription unit;
 
-
-    JavaFile serializerFile;
+    private JavaFile serializerFile;
     /**
      *  type serializers which will be resolved at runtime
      */
     Set<TypeName> provided;
 
-    public SerializationInfo(String typeName) {
-        this.typeName = typeName;
+    public SerializationInfo(BeanDescription unit) {
+        this.unit = unit;
+        this.typeName = unit.getTypeName();
         strings = new HashMap<>();
         provided = new HashSet<>();
     }
 
     public String getTypeName() {
         return this.typeName;
+    }
+
+    public BeanDescription getUnit() {
+        return unit;
     }
 
     public MethodSpec getSerializeMethod() {

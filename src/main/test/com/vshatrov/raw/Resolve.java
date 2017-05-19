@@ -16,7 +16,6 @@ public class Resolve {
     public UnknownClass unknownClass;
     public List<UnknownClass> unknownClassList;
 
-    @java.beans.ConstructorProperties({"name", "unknownClass", "unknownClassList"})
     public Resolve(String name, UnknownClass unknownClass, List<UnknownClass> unknownClassList) {
         this.name = name;
         this.unknownClass = unknownClass;

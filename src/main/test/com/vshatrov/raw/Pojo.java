@@ -3,6 +3,8 @@ package com.vshatrov.raw;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.util.Random;
+
 /**
  * @author Viktor Shatrov.
  */
@@ -13,13 +15,17 @@ public class Pojo {
     public double a2;
 
 
-    @java.beans.ConstructorProperties({"i1", "a2"})
     public Pojo(int i1, double a2) {
         this.i1 = i1;
         this.a2 = a2;
     }
 
     public Pojo() {
+    }
+
+    static Random random = new Random();
+    public static Pojo make() {
+        return new Pojo(random.nextInt(), random.nextDouble());
     }
 
     public boolean equals(Object o) {

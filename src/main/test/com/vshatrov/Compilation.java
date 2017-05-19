@@ -17,11 +17,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * @author Viktor Shatrov.
  */
 public class Compilation {
+    public static Random random = new Random();
 
     public static final String TARGET_DIR = "./target/generated-sources/annotations/";
     public static File targetFile = new File(TARGET_DIR);

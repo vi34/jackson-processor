@@ -18,7 +18,6 @@ public class TypeChange {
     @OldProperty("i1")
     public Pojo pojo;
 
-    @java.beans.ConstructorProperties({"name", "pojo"})
     public TypeChange(String name, Pojo pojo) {
         this.name = name;
         this.pojo = pojo;
