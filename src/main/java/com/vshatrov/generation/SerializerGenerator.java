@@ -45,6 +45,35 @@ public class SerializerGenerator {
         ClassName stdSerializer = ClassName.get(StdSerializer.class);
         ClassName beanClass = ClassName.get(unit.getPackageName(), unit.getSimpleName());
 
+        TypeSpec.Builder serializerClassBuilder = defineClass(unit, stdSerializer, beanClass);
+
+        addConstructors(serializerClassBuilder, beanClass);
+        addSerializeImplementation(serializerClassBuilder, beanClass);
+        addConstants(serializerClassBuilder);
+        addResolve(serializerClassBuilder);
+
+        JavaFile javaFile = JavaFile.builder(getPackageName(unit), serializerClassBuilder.build())
+                .indent("    ")
+                .build();
+
+        javaFile.writeTo(filer);
+        currentSerializationInfo.setSerializerFile(javaFile);
+        processed.put(unit.getTypeName(), currentSerializationInfo);
+
+        return currentSerializationInfo;
+    }
+
+    public void addConstants(TypeSpec.Builder serializerClassBuilder) {
+        currentSerializationInfo.getStrings().forEach((k, v) -> {
+            FieldSpec constDef = FieldSpec.builder(SerializedString.class, k,
+                    Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
+                    .initializer("new SerializedString($S)", v)
+                    .build();
+            serializerClassBuilder.addField(constDef);
+        });
+    }
+
+    public TypeSpec.Builder defineClass(BeanDescription unit, ClassName stdSerializer, ClassName beanClass) {
         MethodSpec serialize = MethodSpec.methodBuilder("serialize")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
@@ -56,46 +85,15 @@ public class SerializerGenerator {
                 .addStatement("$L(value, gen, provider)", writeMethodName(unit.getSimpleName()))
                 .build();
 
-        TypeSpec.Builder serializerClassBuilder = TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
+        return TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .superclass(ParameterizedTypeName.get(stdSerializer, beanClass))
                 .addSuperinterface(ClassName.get(ResolvableSerializer.class))
                 .addMethod(serialize);
-
-        addConstructors(serializerClassBuilder, beanClass);
-
-        MethodSpec serImpl = addSerializeImplementation(unit, beanClass);
-        serializerClassBuilder.addMethod(serImpl);
-
-        currentSerializationInfo.getStrings().forEach((k, v) -> {
-            FieldSpec constDef = FieldSpec.builder(SerializedString.class, k,
-                    Modifier.STATIC, Modifier.FINAL, Modifier.PUBLIC)
-                    .initializer("new SerializedString($S)", v)
-                    .build();
-            serializerClassBuilder.addField(constDef);
-        });
-
-        addResolve(serializerClassBuilder);
-
-        JavaFile javaFile = JavaFile.builder(getPackageName(unit), serializerClassBuilder.build())
-                .indent("    ")
-                .build();
-
-        javaFile.writeTo(filer);
-        currentSerializationInfo.setSerializeMethod(serImpl);
-        currentSerializationInfo.setSerializerFile(javaFile);
-        processed.put(unit.getTypeName(), currentSerializationInfo);
-
-        return currentSerializationInfo;
     }
 
-    public static String getPackageName(BeanDescription unit) {
-        return "com.vshatrov" + PACKAGE_MODIFIER;
-        //return unit.getPackageName() + PACKAGE_MODIFIER;
-    }
-
-    private MethodSpec addSerializeImplementation(BeanDescription unit, ClassName beanClass) throws IOException, GenerationException {
-        MethodSpec.Builder serializeImpl = MethodSpec.methodBuilder(writeMethodName(unit.getSimpleName()))
+    private void addSerializeImplementation(TypeSpec.Builder serializerBuilder,  ClassName beanClass) throws IOException, GenerationException {
+        MethodSpec.Builder serializeImpl = MethodSpec.methodBuilder(writeMethodName(currentSerializationInfo.getUnit().getSimpleName()))
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(beanClass, "value")
                 .addParameter(JsonGenerator.class, "gen")
@@ -104,12 +102,14 @@ public class SerializerGenerator {
                 .addException(IOException.class)
                 .addStatement("gen.writeStartObject()");
 
-        for (Property property : unit.getProps()) {
-            addProperty(property, serializeImpl, "value", true);
+        for (Property property : currentSerializationInfo.getUnit().getProps()) {
+
+            addPropertyName(serializeImpl, property.getName());
+            addProperty(property, serializeImpl, "value");
         }
 
         serializeImpl.addStatement("gen.writeEndObject()");
-        return serializeImpl.build();
+        serializerBuilder.addMethod(serializeImpl.build());
     }
 
     private void addConstructors(TypeSpec.Builder serializerBuilder, ClassName beanClass) {
@@ -157,27 +157,17 @@ public class SerializerGenerator {
 
     }
 
-    private String writeMethodName(String name) {
-        return "write_"+name.toLowerCase();
-    }
-
     // TODO handle null options
     // TODO byte arrays - writeBinary
     /**
      * adds serializing code to {@param method}.
      * @param property - property which belongs to object being serialized
      * @param objectVarName Name of variable of object which being serialized
-     * @param named - specifies if property name writing must be added
      */
-    void addProperty(Property property, MethodSpec.Builder method, String objectVarName, boolean named) throws IOException, GenerationException {
-        String name = property.getName();
-        if (named) {
-            String constName = convertToConstName(name);
-            method.addStatement("gen.writeFieldName($L)", constName);
-            currentSerializationInfo.getStrings().put(constName, name);
-        }
+    void addProperty(Property property, MethodSpec.Builder method, String objectVarName) throws IOException, GenerationException {
         String propVar = property.getName() + "_var";
         method.addStatement("$T $L = $L", property.getTName(), propVar, property.getAccessor(objectVarName));
+
         if (property instanceof ContainerProp) {
             writeContainer((ContainerProp)property, method, propVar);
         } else if (property instanceof MapProp) {
@@ -185,6 +175,7 @@ public class SerializerGenerator {
         } else if (property.isSimple()) {
             method.addStatement("gen.$L", property.writeMethod(objectVarName));
         } else {
+            // use runtime resolved serializer
             method.beginControlFlow("if ($L != null)", propVar)
                     .addStatement("$L.serialize($L, gen, provider)", convertToSerializerName(property.getTName()), propVar)
                     .nextControlFlow("else")
@@ -194,8 +185,14 @@ public class SerializerGenerator {
         }
     }
 
+    private void addPropertyName(MethodSpec.Builder method, String name) {
+        String constName = convertToConstName(name);
+        method.addStatement("gen.writeFieldName($L)", constName);
+        currentSerializationInfo.getStrings().put(constName, name);
+    }
+
     private void writeMap(MapProp property, MethodSpec.Builder method, String propVarName) throws GenerationException, IOException {
-        MapProp.KeyProp key =  property.getKey();
+        MapProp.KeyProp key = property.getKey();
         Property value = property.getValue();
         String var = property.getName() + "_entry";
         method
@@ -205,7 +202,7 @@ public class SerializerGenerator {
                         key.getTName(), value.getTName(), var, propVarName)
                 .addStatement("gen.writeFieldName($L)", key.writeMethod(var));
 
-        addProperty(value, method, var, false);
+        addProperty(value, method, var);
 
         method
                 .endControlFlow()
@@ -223,7 +220,7 @@ public class SerializerGenerator {
                 .addStatement("gen.writeStartArray()")
                 .beginControlFlow("for ($T $L : $L) ", element.getTName(), elemVar, propVarName);
 
-        addProperty(element, method, elemVar, false);
+        addProperty(element, method, elemVar);
 
         method
                 .endControlFlow()
@@ -231,6 +228,16 @@ public class SerializerGenerator {
                 .nextControlFlow("else")
                 .addStatement("gen.writeNull()")
                 .endControlFlow();
+    }
+
+
+    public static String getPackageName(BeanDescription unit) {
+        return "com.vshatrov" + PACKAGE_MODIFIER;
+        //return unit.getPackageName() + PACKAGE_MODIFIER;
+    }
+
+    private String writeMethodName(String name) {
+        return "write_"+name.toLowerCase();
     }
 
     private String convertToConstName(String name) {

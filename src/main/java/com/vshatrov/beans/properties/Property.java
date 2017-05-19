@@ -20,8 +20,8 @@ import static com.vshatrov.utils.Utils.isNumber;
  */
 public class Property {
 
-    String name;    /** name of property which will be in json*/
-    String propertyName; /** actual property name in class, used only for access */
+    private String name;    /** name of property which will be in json*/
+    private String propertyName; /** actual property name in class, used only for access */
     String typeName;
     Function<String, String> dynamicAccessor;
     String getter;

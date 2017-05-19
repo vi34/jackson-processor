@@ -15,7 +15,6 @@ import java.util.Set;
  */
 public class SerializationInfo {
     private String typeName;
-    private MethodSpec serializeMethod;
     private Map<String, String> strings;
     private BeanDescription unit;
 
@@ -40,10 +39,6 @@ public class SerializationInfo {
         return unit;
     }
 
-    public MethodSpec getSerializeMethod() {
-        return this.serializeMethod;
-    }
-
     public Map<String, String> getStrings() {
         return this.strings;
     }
@@ -60,9 +55,6 @@ public class SerializationInfo {
         this.typeName = typeName;
     }
 
-    public void setSerializeMethod(MethodSpec serializeMethod) {
-        this.serializeMethod = serializeMethod;
-    }
 
     public void setStrings(Map<String, String> strings) {
         this.strings = strings;

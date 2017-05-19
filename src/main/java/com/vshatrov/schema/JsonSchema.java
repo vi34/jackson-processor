@@ -36,7 +36,7 @@ public class JsonSchema {
 
     public void addProp(String name, JsonSchema schema) {
         properties.put(name, schema);
-        required.add(name);
+        //required.add(name);
     }
 
 

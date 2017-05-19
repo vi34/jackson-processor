@@ -18,9 +18,8 @@ import java.util.stream.Collectors;
  * @author Viktor Shatrov.
  */
 public class DeserializationInfo {
-    String typeName;
-    MethodSpec deserializeMethod;
-    Map<String, DeserializationInfo> props;
+    private String typeName;
+    private Map<String, DeserializationInfo> props;
 
 
     private BeanDescription unit;
@@ -45,10 +44,6 @@ public class DeserializationInfo {
 
     public String getTypeName() {
         return this.typeName;
-    }
-
-    public MethodSpec getDeserializeMethod() {
-        return this.deserializeMethod;
     }
 
     public Map<String, DeserializationInfo> getProps() {
@@ -81,10 +76,6 @@ public class DeserializationInfo {
 
     public void setTypeName(String typeName) {
         this.typeName = typeName;
-    }
-
-    public void setDeserializeMethod(MethodSpec deserializeMethod) {
-        this.deserializeMethod = deserializeMethod;
     }
 
     public void setProps(Map<String, DeserializationInfo> props) {

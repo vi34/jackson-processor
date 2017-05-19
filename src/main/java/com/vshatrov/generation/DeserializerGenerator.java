@@ -41,40 +41,17 @@ public class DeserializerGenerator {
         this.processed = processed;
     }
 
-    public static String getPackageName(BeanDescription unit) {
-        return "com.vshatrov" + PACKAGE_MODIFIER;
-        //return unit.getPackageName() + PACKAGE_MODIFIER;
-    }
-
-
     public DeserializationInfo generateDeserializer(BeanDescription unit) throws IOException, GenerationException {
         currentDeserInfo = new DeserializationInfo(unit);
         ClassName stdDeserializer = ClassName.get(StdDeserializer.class);
 
-        MethodSpec deserialize = MethodSpec.methodBuilder("deserialize")
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .addParameter(JsonParser.class, "parser")
-                .addParameter(DeserializationContext.class, "ctxt")
-                .returns(unit.getClassName())
-                .addException(IOException.class)
-                .addStatement("return $L(parser, ctxt)", readMethodName(unit.getSimpleName()))
-                .build();
-
-        TypeSpec.Builder deserializerBuilder = TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .superclass(ParameterizedTypeName.get(stdDeserializer, unit.getClassName()))
-                .addSuperinterface(ClassName.get(ResolvableDeserializer.class))
-                .addMethod(deserialize);
+        TypeSpec.Builder deserializerBuilder = defineClass(unit, stdDeserializer);
 
         addConstructors(deserializerBuilder, unit.getClassName());
 
-        MethodSpec deserImpl = addDeserializeImplementation(unit.getClassName());
-        deserializerBuilder.addMethod(deserImpl);
-
+        addDeserializeImplementation(deserializerBuilder, unit.getClassName());
         generateConstants(deserializerBuilder);
         addHelperMethods(deserializerBuilder);
-
         addResolve(deserializerBuilder);
 
         currentDeserInfo.getReadMethods().values().forEach(deserializerBuilder::addMethod);
@@ -85,9 +62,26 @@ public class DeserializerGenerator {
 
         javaFile.writeTo(filer);
         currentDeserInfo.setJavaFile(javaFile);
-        currentDeserInfo.setDeserializeMethod(deserImpl);
         processed.put(unit.getTypeName(), currentDeserInfo);
         return currentDeserInfo;
+    }
+
+    public TypeSpec.Builder defineClass(BeanDescription unit, ClassName stdDeserializer) {
+        MethodSpec deserialize = MethodSpec.methodBuilder("deserialize")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(JsonParser.class, "parser")
+                .addParameter(DeserializationContext.class, "ctxt")
+                .returns(unit.getClassName())
+                .addException(IOException.class)
+                .addStatement("return $L(parser, ctxt)", readMethodName(unit.getSimpleName()))
+                .build();
+
+        return TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .superclass(ParameterizedTypeName.get(stdDeserializer, unit.getClassName()))
+                .addSuperinterface(ClassName.get(ResolvableDeserializer.class))
+                .addMethod(deserialize);
     }
 
     private void addHelperMethods(TypeSpec.Builder deserializerBuilder) {
@@ -173,7 +167,8 @@ public class DeserializerGenerator {
         deserializerBuilder.addStaticBlock(mappingBuilder.build());
     }
 
-    private MethodSpec addDeserializeImplementation(ClassName beanClass) throws IOException, GenerationException {
+    private void addDeserializeImplementation(TypeSpec.Builder deserializerBuilder, ClassName beanClass)
+            throws IOException, GenerationException {
         MethodSpec.Builder deserializeImpl = MethodSpec.methodBuilder(readMethodName(currentDeserInfo.getUnit().getSimpleName()))
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(JsonParser.class, "parser")
@@ -188,11 +183,15 @@ public class DeserializerGenerator {
         });
 
         genFastParsing(deserializeImpl, varName, 0);
-
         genCommonParsing(deserializeImpl, varName);
-
         deserializeImpl.addStatement("verifyCurrent(parser, JsonToken.END_OBJECT)");
+        checkResult(deserializeImpl, varName);
+        deserializeImpl.addStatement("return $L", varName);
 
+        deserializerBuilder.addMethod(deserializeImpl.build());
+    }
+
+    private void checkResult(MethodSpec.Builder deserializeImpl, String varName) {
         currentDeserInfo.getUnit().getProps().forEach(prop -> {
             String condition;
             String accessor;
@@ -207,9 +206,6 @@ public class DeserializerGenerator {
             deserializeImpl.addStatement("if ($L) throw new IllegalStateException(\"Missing field: \" + $L)",
                     condition, convertToSerializedConstName(prop.getName()));
         });
-
-        deserializeImpl.addStatement("return $L", varName);
-        return deserializeImpl.build();
     }
 
     private String instantiate(ClassName beanClass, MethodSpec.Builder deserializeImpl) {
@@ -431,7 +427,7 @@ public class DeserializerGenerator {
     }
 
 
-    private void addConstructors(TypeSpec.Builder serializerBuilder ,ClassName beanClass) {
+    private void addConstructors(TypeSpec.Builder deserializerBuilder ,ClassName beanClass) {
         ParameterizedTypeName classBean = ParameterizedTypeName.get(ClassName.get(Class.class), beanClass);
         MethodSpec constrOneArg = MethodSpec.constructorBuilder()
                 .addParameter(ParameterSpec.builder(classBean, "t").build())
@@ -444,7 +440,7 @@ public class DeserializerGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .build();
 
-        serializerBuilder
+        deserializerBuilder
                 .addMethod(constrOneArg)
                 .addMethod(constrDef);
     }
@@ -513,6 +509,11 @@ public class DeserializerGenerator {
         deserializerBuilder.addMethod(resolve.build());
 
 
+    }
+
+    public static String getPackageName(BeanDescription unit) {
+        return "com.vshatrov" + PACKAGE_MODIFIER;
+        //return unit.getPackageName() + PACKAGE_MODIFIER;
     }
 
     private String presenceFlag(String name) {
