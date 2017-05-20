@@ -6,13 +6,13 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.vshatrov.entities.media.*;
+import com.vshatrov.model.media.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.vshatrov.entities.media.FieldMapping.*;
+import static com.vshatrov.model.media.FieldMapping.*;
 
 
 /**

@@ -1,15 +1,11 @@
 package com.vshatrov.deserializers;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.deser.std.PrimitiveArrayDeserializers;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.ser.std.StdArraySerializers;
-import com.vshatrov.entities.Pojo;
+import com.vshatrov.model.Pojo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,9 +19,9 @@ public class PojoDeserializer extends StdDeserializer<Pojo> {
 
     public static final String FULL_FIELD_I1 = "i1";
     public static final int IX_FULL_FIELD_I1 = 1;
-    public static final String FULL_FIELD_STR = "Str";
+    public static final String FULL_FIELD_STR = "str";
     public static final int IX_FULL_FIELD_STR = 2;
-    public static final String FULL_FIELD_ILIST = "Ilist";
+    public static final String FULL_FIELD_ILIST = "list";
     public static final int IX_FULL_FIELD_ILIST = 3;
     public static final String FULL_FIELD_BOOL = "bool";
     public static final int IX_FULL_FIELD_BOOL = 4;

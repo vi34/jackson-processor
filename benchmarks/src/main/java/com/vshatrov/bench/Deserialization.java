@@ -8,9 +8,9 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.vshatrov.deserializers.ComplexDeserializer;
 import com.vshatrov.deserializers.MediaItemDeserializer;
 import com.vshatrov.deserializers.PojoDeserializer;
-import com.vshatrov.entities.Complex;
-import com.vshatrov.entities.Pojo;
-import com.vshatrov.entities.media.*;
+import com.vshatrov.model.Complex;
+import com.vshatrov.model.Pojo;
+import com.vshatrov.model.media.*;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -52,11 +52,6 @@ public class Deserialization {
         handModule.addDeserializer(Pojo.class, new PojoDeserializer());
         handModule.addDeserializer(Complex.class, new ComplexDeserializer());
         SimpleModule procModule = new SimpleModule();
-        procModule.addDeserializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemDeserializer());
-        procModule.addDeserializer(Image.class, new ImageDeserializer());
-        procModule.addDeserializer(Media.class, new MediaDeserializer());
-        procModule.addDeserializer(Pojo.class, new com.vshatrov.entities.PojoDeserializer());
-        procModule.addDeserializer(Complex.class, new com.vshatrov.entities.ComplexDeserializer());
 
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());

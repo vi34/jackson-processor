@@ -11,8 +11,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.deser.ResolvableDeserializer;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.vshatrov.entities.Complex;
-import com.vshatrov.entities.Pojo;
+import com.vshatrov.model.Complex;
+import com.vshatrov.model.Pojo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public class ComplexDeserializer extends StdDeserializer<Complex> implements Res
                 complex.setNum(parser.nextIntValue(-1));
                 haveNum = true;
                 if (parser.nextFieldName(FIELD_POJOS)) {
-                    complex.setList(readPojos(parser, ctxt));
+                    complex.setPojos(readPojos(parser, ctxt));
                     parser.nextToken();
                     verifyCurrent(parser, JsonToken.END_OBJECT);
                     return complex;
@@ -84,7 +84,7 @@ public class ComplexDeserializer extends StdDeserializer<Complex> implements Res
                         complex.setName(parser.nextTextValue());
                         continue;
                     case IX_FULL_FIELD_POJOS:
-                        complex.setList(readPojos(parser, ctxt));
+                        complex.setPojos(readPojos(parser, ctxt));
                         continue;
                 }
             }
@@ -95,7 +95,7 @@ public class ComplexDeserializer extends StdDeserializer<Complex> implements Res
 
         if (!haveNum) throw new IllegalStateException("Missing field: " + FIELD_NUM);
         if (complex.getName() == null) throw new IllegalStateException("Missing field: " + FIELD_NAME);
-        if (complex.getList() == null) throw new IllegalStateException("Missing field: " + FIELD_POJOS);
+        if (complex.getPojos() == null) throw new IllegalStateException("Missing field: " + FIELD_POJOS);
 
         return complex;
     }

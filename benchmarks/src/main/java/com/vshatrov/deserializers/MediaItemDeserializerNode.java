@@ -8,8 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.*;
-import com.vshatrov.entities.media.*;
-import jdk.nashorn.internal.runtime.regexp.joni.ast.StringNode;
+import com.vshatrov.model.media.*;
 
 import java.io.IOException;
 import java.util.ArrayList;

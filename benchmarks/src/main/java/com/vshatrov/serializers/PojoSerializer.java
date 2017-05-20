@@ -3,7 +3,7 @@ package com.vshatrov.serializers;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.vshatrov.entities.Pojo;
+import com.vshatrov.model.Pojo;
 
 import java.io.IOException;
 
@@ -24,8 +24,8 @@ public class PojoSerializer extends StdSerializer<Pojo> {
     public void serialize(Pojo value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
         gen.writeNumberField("i1", value.getI1());
-        gen.writeStringField("Str", value.getStr());
-        gen.writeArrayFieldStart("Ilist");
+        gen.writeStringField("str", value.getStr());
+        gen.writeArrayFieldStart("list");
         for (int v : value.getList()) {
             gen.writeNumber(v);
         }

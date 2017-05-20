@@ -1,4 +1,4 @@
-package com.vshatrov.entities.media;
+package com.vshatrov.model.media;
 
 /**
  * @author Viktor Shatrov.

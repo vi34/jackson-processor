@@ -4,13 +4,13 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.vshatrov.entities.media.Media;
-import com.vshatrov.entities.media.MediaItem;
-import com.vshatrov.entities.media.Image;
+import com.vshatrov.model.media.Media;
+import com.vshatrov.model.media.MediaItem;
+import com.vshatrov.model.media.Image;
 
 import java.io.IOException;
 
-import static com.vshatrov.entities.media.FieldMapping.*;
+import static com.vshatrov.model.media.FieldMapping.*;
 
 /**
  * @author Viktor Shatrov.

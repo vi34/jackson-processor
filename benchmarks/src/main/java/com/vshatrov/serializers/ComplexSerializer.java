@@ -1,11 +1,10 @@
 package com.vshatrov.serializers;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.vshatrov.entities.Complex;
-import com.vshatrov.entities.Pojo;
+import com.vshatrov.model.Complex;
+import com.vshatrov.model.Pojo;
 
 import java.io.IOException;
 
@@ -30,12 +29,12 @@ public class ComplexSerializer extends StdSerializer<Complex> {
 
         gen.writeArrayFieldStart("pojos");
         //JsonSerializer<Object> pojoSer = provider.findValueSerializer(Pojo.class);
-        for (Pojo v : value.getList()) {
+        for (Pojo v : value.getPojos()) {
             //pojoSer.serialize(v, gen, provider);
             gen.writeStartObject();
             gen.writeNumberField("i1", v.getI1());
-            gen.writeStringField("Str", v.getStr());
-            gen.writeArrayFieldStart("Ilist");
+            gen.writeStringField("str", v.getStr());
+            gen.writeArrayFieldStart("list");
             for (int val : v.getList()) {
                 gen.writeNumber(val);
             }

@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-import com.vshatrov.entities.media.MediaItem;
+import com.vshatrov.model.media.MediaItem;
 import com.vshatrov.serializers.*;
-import com.vshatrov.entities.Pojo;
-import com.vshatrov.entities.Complex;
+import com.vshatrov.model.Pojo;
+import com.vshatrov.model.Complex;
 import com.vshatrov.serializers.MediaItemSerializer;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
@@ -47,9 +47,7 @@ public class Serialization {
         handModule.addSerializer(Complex.class, new ComplexSerializer());
         handModule.addSerializer(MediaItem.class, new MediaItemSerializer());
         SimpleModule procModule = new SimpleModule();
-        procModule.addSerializer(MediaItem.class, new com.vshatrov.entities.media.MediaItemSerializer());
-        procModule.addSerializer(Complex.class, new com.vshatrov.entities.ComplexSerializer());
-        procModule.addSerializer(Pojo.class, new com.vshatrov.entities.PojoSerializer());
+
         switch (method) {
             case "afterBurner": mapper.registerModule(new AfterburnerModule());
                 break;
