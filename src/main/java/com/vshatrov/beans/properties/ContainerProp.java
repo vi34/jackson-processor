@@ -7,6 +7,7 @@ import javax.lang.model.type.TypeMirror;
 import java.util.function.Function;
 
 /**
+ * Properties which usually serialized as array in json.
  * @author Viktor Shatrov.
  */
 public class ContainerProp extends Property {

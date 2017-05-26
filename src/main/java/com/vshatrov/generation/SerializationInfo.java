@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Used as internal state during generation in {@link SerializerGenerator}
  * @author Viktor Shatrov.
  */
 public class SerializationInfo {

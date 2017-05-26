@@ -15,8 +15,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -76,7 +74,12 @@ public class SchemaTest {
         Pojo[] pojos = {new Pojo(1, 3.2), new Pojo(2, 5.2), new Pojo(3, 4.2)};
         Enums.En[] ens = {Enums.En.ONE, Enums.En.TWO, Enums.En.THREE};
 
-        Array arr = new Array(ints, pojos, Arrays.asList(1 ,2,5), Arrays.asList(new Pojo(5, 6)), ens);
+        Collections arr = new Collections();
+        arr.ints = ints;
+        arr.pojos = pojos;
+        arr.lInts = Arrays.asList(1, 2, 5);
+        arr.lPojos = Arrays.asList(new Pojo(5, 6));
+        arr.ens = ens;
         jsonNode = mapper.valueToTree(arr);
 
         re = jsonSchema.validate(jsonNode);

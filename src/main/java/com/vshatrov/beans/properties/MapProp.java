@@ -1,10 +1,15 @@
 package com.vshatrov.beans.properties;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.vshatrov.GenerationException;
 import com.vshatrov.schema.JsonType;
+import com.vshatrov.utils.Utils;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import java.util.HashMap;
 
 /**
  * @author Viktor Shatrov.
@@ -36,6 +41,19 @@ public class MapProp extends Property {
 
     public Property getValue() {
         return this.value;
+    }
+
+    @Override
+    public CodeBlock defaultInstance() {
+        if (isInterface) {
+            return CodeBlock.builder()
+                    .add("new $T()", ParameterizedTypeName.get(ClassName.get(HashMap.class),
+                            key.getTName(), value.getTName()))
+                    .add(";\n$]")
+                    .build();
+        } else {
+            return super.defaultInstance();
+        }
     }
 
     public static class KeyProp extends Property {

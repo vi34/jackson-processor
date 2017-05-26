@@ -15,6 +15,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * Used as internal state during generation in {@link DeserializerGenerator}
  * @author Viktor Shatrov.
  */
 public class DeserializationInfo {

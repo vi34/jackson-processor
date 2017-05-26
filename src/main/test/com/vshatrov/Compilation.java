@@ -53,7 +53,7 @@ public class Compilation {
         System.out.println("Compilation succesful: " + task.call());
         for(final Diagnostic< ? extends JavaFileObject > diagnostic: diagnostics.getDiagnostics() ) {
             if (diagnostic.getSource() != null) {
-                System.err.format("%s, line %d in %s",
+                System.err.format("%s, line %d in %s\n",
                         diagnostic.getMessage(null),
                         diagnostic.getLineNumber(),
                         diagnostic.getSource().getName());

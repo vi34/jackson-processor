@@ -3,6 +3,8 @@ package com.vshatrov.raw;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.util.EnumSet;
+
 /**
  * @author Viktor Shatrov.
  */
@@ -11,9 +13,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class Enums {
     public En enNum;
 
-    public enum En {ONE, TWO, THREE}
+    public enum En {ONE, TWO, THREE, FOUR}
 
-    @java.beans.ConstructorProperties({"enNum"})
     public Enums(En enNum) {
         this.enNum = enNum;
     }

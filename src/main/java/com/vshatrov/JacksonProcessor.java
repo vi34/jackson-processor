@@ -42,7 +42,7 @@ import static com.vshatrov.utils.Utils.*;
 })
 public class JacksonProcessor extends AbstractProcessor {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final String DEFAULT_SCHEMA_DIR = "./json-schema";
     public static final String JSON_DESERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonDeserialize";
     public static final String JSON_SERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonSerialize";

@@ -23,13 +23,7 @@ public class PropertyFabric {
 
     private Property constructProp(VariableElement member, TypeMirror type) {
         Property property;
-        if (iterable(type)) {
-            TypeMirror elemType = iterable(type) ? ((Type.ClassType) type).getTypeArguments().get(0) : ((ArrayType) type).getComponentType();
-            Property propertyEl = constructProp(null, elemType);
-            property = member != null
-                    ? new ContainerProp(member, propertyEl)
-                    : new ContainerProp(type, propertyEl);
-        } else if (type.getKind().equals(ARRAY)) {
+        if (type.getKind().equals(ARRAY)) {
             TypeMirror elemType = ((ArrayType) type).getComponentType();
             Property propertyEl = constructProp(null, elemType);
             property = member != null
@@ -46,6 +40,30 @@ public class PropertyFabric {
         } else if (isEnum(type)) {
             property = member != null ? new EnumProp(member) : new EnumProp(type);
             property.setSimple(true);
+        } else if (isEnumSet(type)) {
+            TypeMirror elemType = ((Type.ClassType) type).getTypeArguments().get(0);
+            Property propertyEl = constructProp(null, elemType);
+            property = member != null
+                    ? new EnumSetProp(member, propertyEl)
+                    : new EnumSetProp(type, propertyEl);
+        } else if (isSet(type)) {
+            TypeMirror elemType = ((Type.ClassType) type).getTypeArguments().get(0);
+            Property propertyEl = constructProp(null, elemType);
+            property = member != null
+                    ? new SetProp(member, propertyEl)
+                    : new SetProp(type, propertyEl);
+        } else if (isList(type)) {
+            TypeMirror elemType = ((Type.ClassType) type).getTypeArguments().get(0);
+            Property propertyEl = constructProp(null, elemType);
+            property = member != null
+                    ? new ListProp(member, propertyEl)
+                    : new ListProp(type, propertyEl);
+        } else if (iterable(type)) {
+            TypeMirror elemType = iterable(type) ? ((Type.ClassType) type).getTypeArguments().get(0) : ((ArrayType) type).getComponentType();
+            Property propertyEl = constructProp(null, elemType);
+            property = member != null
+                    ? new ContainerProp(member, propertyEl)
+                    : new ContainerProp(type, propertyEl);
         } else {
             property = member != null ? new Property(member) : new Property(type);
         }

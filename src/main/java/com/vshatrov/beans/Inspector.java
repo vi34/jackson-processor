@@ -24,6 +24,7 @@ import static com.vshatrov.utils.Utils.messager;
 import static javax.lang.model.type.TypeKind.*;
 
 /**
+ * Generates {@link BeanDescription} by inspecting given TypeElement.
  * @author Viktor Shatrov.
  */
 public class Inspector {

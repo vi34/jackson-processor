@@ -1,6 +1,5 @@
 package com.vshatrov.utils;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.tree.JCTree;
@@ -58,30 +57,47 @@ public class Utils {
         }
     }
 
+    static int varCounter = 1;
+    public static String newVarableName() {
+        return "var_" + (varCounter++);
+    }
+
     public static boolean isEnum(TypeMirror type) {
-        return haveSupertype(type, "java.lang.Enum");
+        return hasSupertype(type, "java.lang.Enum");
     }
 
     public static boolean iterable(TypeMirror type) {
-        return haveSupertype(type, "java.util.Collection");
+        return hasSupertype(type, "java.util.Collection");
+    }
+
+    public static boolean isList(TypeMirror type) {
+        return hasSupertype(type, "java.util.List");
+    }
+
+    public static boolean isEnumSet(TypeMirror type) {
+        return hasSupertype(type, "java.util.EnumSet");
+    }
+
+    public static boolean isSet(TypeMirror type) {
+        return hasSupertype(type, "java.util.Set");
     }
 
     public static boolean isMap(TypeMirror type) {
-        return haveSupertype(type, "java.util.Map");
+        return hasSupertype(type, "java.util.Map");
     }
 
-    private static boolean haveSupertype(TypeMirror type, String superType) {
+    private static boolean hasSupertype(TypeMirror type, String superType) {
         if (typeUtils.erasure(type).toString().equals(superType)) return true;
 
         for (TypeMirror directSuperType : typeUtils.directSupertypes(type)) {
-            if (haveSupertype(directSuperType, superType))
+            if (hasSupertype(directSuperType, superType))
                 return true;
         }
         return false;
     }
 
     public static boolean isNumber(TypeMirror type) {
-        if (haveSupertype(type, "java.lang.Number")) return true;
+        if (hasSupertype(type, "java.lang.Number")) return true;
 
         TypeKind kind = type.getKind();
         return kind == INT || kind == LONG || kind == SHORT || kind == BYTE || kind == DOUBLE || kind == FLOAT;

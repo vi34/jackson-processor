@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Collected information about class for which implementations being generated.
  * @author Viktor Shatrov.
  */
 public class BeanDescription {

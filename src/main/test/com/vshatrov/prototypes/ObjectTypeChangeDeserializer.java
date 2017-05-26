@@ -133,7 +133,6 @@ public final class ObjectTypeChangeDeserializer extends StdDeserializer<ObjectTy
 
         complex_deserializer = new TypeWrappedDeserializer(objectTypeDeser,
                         new ComplexDeserializer(ctxt.findNonContextualValueDeserializer(javaType)));
-        ArrayType arrayType;
     }
 
     private Complex read_object(JsonParser parser, DeserializationContext ctxt) throws IOException {

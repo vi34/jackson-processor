@@ -5,13 +5,12 @@ import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vshatrov.raw.*;
+import com.vshatrov.raw.Collections;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -91,14 +90,19 @@ public class SerializationTest {
 
     @Test
     public void arrayAndList() throws IOException {
-        Assert.assertTrue(loadSerializer(Array.class, mapper));
+        Assert.assertTrue(loadSerializer(Collections.class, mapper));
         int[] ints = {1, 5, 10, 2, 9, 8, 1, 1, 3};
         Pojo[] pojos = {new Pojo(1, 3.2), new Pojo(2, 5.2), new Pojo(3, 4.2)};
         Enums.En[] ens = {Enums.En.ONE, Enums.En.TWO, Enums.En.THREE};
 
-        Array val = new Array(ints, pojos, Arrays.asList(1 ,2,5), Arrays.asList(new Pojo(5, 6)), ens);
+        Collections val = new Collections();
+        val.ints = ints;
+        val.pojos = pojos;
+        val.lInts = Arrays.asList(1, 2, 5);
+        val.lPojos = Arrays.asList(new Pojo(5, 6));
+        val.ens = ens;
 
-        round_trip_check(val, Array.class);
+        round_trip_check(val, Collections.class);
     }
 
     @Test
@@ -135,11 +139,13 @@ public class SerializationTest {
         Complex c = new Complex(3, null);
         round_trip_check(c, Complex.class);
 
-        Assert.assertTrue(loadSerializer(Array.class, mapper));
+        Assert.assertTrue(loadSerializer(Collections.class, mapper));
 
         Pojo[] pojos = {new Pojo(1, 0.2), null};
-        Array arr = new Array(null, pojos, null, Arrays.asList(pojos), null);
-        round_trip_check(arr, Array.class);
+        Collections arr = new Collections();
+        arr.pojos = pojos;
+        arr.lPojos = Arrays.asList(pojos);
+        round_trip_check(arr, Collections.class);
 
     }
 

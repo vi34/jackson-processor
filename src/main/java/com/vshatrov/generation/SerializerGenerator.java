@@ -28,6 +28,7 @@ import java.util.Map;
 import static com.vshatrov.utils.Utils.*;
 
 /**
+ * Generates JsonSerializer implementation source code, based on given {@link BeanDescription}
  * @author Viktor Shatrov.
  */
 public class SerializerGenerator {

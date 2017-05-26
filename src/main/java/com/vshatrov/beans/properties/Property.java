@@ -1,6 +1,8 @@
 package com.vshatrov.beans.properties;
 
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
+import com.sun.tools.javac.code.Type;
 import com.vshatrov.GenerationException;
 import com.vshatrov.schema.JsonType;
 import com.vshatrov.utils.Utils;
@@ -26,12 +28,15 @@ public class Property {
     Function<String, String> dynamicAccessor;
     String getter;
     String setter;
-    TypeName tName;
     TypeKind typeKind;
     boolean isSimple;
+    JsonType jsonType;
+    TypeName tName;
+    boolean isInterface;
 
     List<String> alternativeNames = new ArrayList<>();
     String oldProperty;
+
 
     /**
      * Type constructor used only when property is a type parameter of another property
@@ -49,8 +54,6 @@ public class Property {
         }
         fillWithType(type);
     }
-
-    JsonType jsonType;
 
 
     Property(VariableElement element) {
@@ -70,6 +73,7 @@ public class Property {
 
     void fillWithType(TypeMirror type) {
         isSimple = computeSimple(type);
+        isInterface = ((Type)type).isInterface();
         switch (getTypeName()) {
             case "boolean":case "java.lang.Boolean":
                 jsonType = JsonType.BOOLEAN; break;
@@ -117,6 +121,12 @@ public class Property {
             default:
                 throw new GenerationException("Couldn't find generator method for " + this);
         }
+    }
+
+    public CodeBlock defaultInstance() {
+        return CodeBlock.builder()
+                .add("new $T();\n$]", tName)
+                .build();
     }
 
     public String parseMethod(String parser) throws GenerationException {
@@ -241,86 +251,50 @@ public class Property {
         this.jsonType = jsonType;
     }
 
+    public boolean isInterface() {
+        return isInterface;
+    }
+
+    @Override
     public boolean equals(Object o) {
-        if (o == this) return true;
-        if (!(o instanceof Property)) return false;
-        final Property other = (Property) o;
-        if (!other.canEqual((Object) this)) return false;
-        final Object this$name = this.getName();
-        final Object other$name = other.getName();
-        if (this$name == null ? other$name != null : !this$name.equals(other$name)) return false;
-        final Object this$propertyName = this.getPropertyName();
-        final Object other$propertyName = other.getPropertyName();
-        if (this$propertyName == null ? other$propertyName != null : !this$propertyName.equals(other$propertyName))
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Property property = (Property) o;
+
+        if (isSimple != property.isSimple) return false;
+        if (isInterface != property.isInterface) return false;
+        if (name != null ? !name.equals(property.name) : property.name != null) return false;
+        if (propertyName != null ? !propertyName.equals(property.propertyName) : property.propertyName != null)
             return false;
-        final Object this$typeName = this.getTypeName();
-        final Object other$typeName = other.getTypeName();
-        if (this$typeName == null ? other$typeName != null : !this$typeName.equals(other$typeName)) return false;
-        final Object this$dynamicAccessor = this.getDynamicAccessor();
-        final Object other$dynamicAccessor = other.getDynamicAccessor();
-        if (this$dynamicAccessor == null ? other$dynamicAccessor != null : !this$dynamicAccessor.equals(other$dynamicAccessor))
+        if (typeName != null ? !typeName.equals(property.typeName) : property.typeName != null) return false;
+        if (dynamicAccessor != null ? !dynamicAccessor.equals(property.dynamicAccessor) : property.dynamicAccessor != null)
             return false;
-        final Object this$getter = this.getGetter();
-        final Object other$getter = other.getGetter();
-        if (this$getter == null ? other$getter != null : !this$getter.equals(other$getter)) return false;
-        final Object this$setter = this.getSetter();
-        final Object other$setter = other.getSetter();
-        if (this$setter == null ? other$setter != null : !this$setter.equals(other$setter)) return false;
-        final Object this$tName = this.getTName();
-        final Object other$tName = other.getTName();
-        if (this$tName == null ? other$tName != null : !this$tName.equals(other$tName)) return false;
-        final Object this$typeKind = this.getTypeKind();
-        final Object other$typeKind = other.getTypeKind();
-        if (this$typeKind == null ? other$typeKind != null : !this$typeKind.equals(other$typeKind)) return false;
-        if (this.isSimple() != other.isSimple()) return false;
-        final Object this$alternativeNames = this.getAlternativeNames();
-        final Object other$alternativeNames = other.getAlternativeNames();
-        if (this$alternativeNames == null ? other$alternativeNames != null : !this$alternativeNames.equals(other$alternativeNames))
+        if (getter != null ? !getter.equals(property.getter) : property.getter != null) return false;
+        if (setter != null ? !setter.equals(property.setter) : property.setter != null) return false;
+        if (typeKind != property.typeKind) return false;
+        if (jsonType != property.jsonType) return false;
+        if (tName != null ? !tName.equals(property.tName) : property.tName != null) return false;
+        if (alternativeNames != null ? !alternativeNames.equals(property.alternativeNames) : property.alternativeNames != null)
             return false;
-        final Object this$oldProperty = this.getOldProperty();
-        final Object other$oldProperty = other.getOldProperty();
-        if (this$oldProperty == null ? other$oldProperty != null : !this$oldProperty.equals(other$oldProperty))
-            return false;
-        final Object this$jsonType = this.getJsonType();
-        final Object other$jsonType = other.getJsonType();
-        if (this$jsonType == null ? other$jsonType != null : !this$jsonType.equals(other$jsonType)) return false;
-        return true;
+        return oldProperty != null ? oldProperty.equals(property.oldProperty) : property.oldProperty == null;
     }
 
+    @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $name = this.getName();
-        result = result * PRIME + ($name == null ? 43 : $name.hashCode());
-        final Object $propertyName = this.getPropertyName();
-        result = result * PRIME + ($propertyName == null ? 43 : $propertyName.hashCode());
-        final Object $typeName = this.getTypeName();
-        result = result * PRIME + ($typeName == null ? 43 : $typeName.hashCode());
-        final Object $dynamicAccessor = this.getDynamicAccessor();
-        result = result * PRIME + ($dynamicAccessor == null ? 43 : $dynamicAccessor.hashCode());
-        final Object $getter = this.getGetter();
-        result = result * PRIME + ($getter == null ? 43 : $getter.hashCode());
-        final Object $setter = this.getSetter();
-        result = result * PRIME + ($setter == null ? 43 : $setter.hashCode());
-        final Object $tName = this.getTName();
-        result = result * PRIME + ($tName == null ? 43 : $tName.hashCode());
-        final Object $typeKind = this.getTypeKind();
-        result = result * PRIME + ($typeKind == null ? 43 : $typeKind.hashCode());
-        result = result * PRIME + (this.isSimple() ? 79 : 97);
-        final Object $alternativeNames = this.getAlternativeNames();
-        result = result * PRIME + ($alternativeNames == null ? 43 : $alternativeNames.hashCode());
-        final Object $oldProperty = this.getOldProperty();
-        result = result * PRIME + ($oldProperty == null ? 43 : $oldProperty.hashCode());
-        final Object $jsonType = this.getJsonType();
-        result = result * PRIME + ($jsonType == null ? 43 : $jsonType.hashCode());
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (propertyName != null ? propertyName.hashCode() : 0);
+        result = 31 * result + (typeName != null ? typeName.hashCode() : 0);
+        result = 31 * result + (dynamicAccessor != null ? dynamicAccessor.hashCode() : 0);
+        result = 31 * result + (getter != null ? getter.hashCode() : 0);
+        result = 31 * result + (setter != null ? setter.hashCode() : 0);
+        result = 31 * result + (typeKind != null ? typeKind.hashCode() : 0);
+        result = 31 * result + (isSimple ? 1 : 0);
+        result = 31 * result + (jsonType != null ? jsonType.hashCode() : 0);
+        result = 31 * result + (tName != null ? tName.hashCode() : 0);
+        result = 31 * result + (isInterface ? 1 : 0);
+        result = 31 * result + (alternativeNames != null ? alternativeNames.hashCode() : 0);
+        result = 31 * result + (oldProperty != null ? oldProperty.hashCode() : 0);
         return result;
-    }
-
-    protected boolean canEqual(Object other) {
-        return other instanceof Property;
-    }
-
-    public String toString() {
-        return "com.vshatrov.beans.properties.Property(name=" + this.getName() + ", propertyName=" + this.getPropertyName() + ", typeName=" + this.getTypeName() + ", dynamicAccessor=" + this.getDynamicAccessor() + ", getter=" + this.getGetter() + ", setter=" + this.getSetter() + ", tName=" + this.getTName() + ", typeKind=" + this.getTypeKind() + ", isSimple=" + this.isSimple() + ", alternativeNames=" + this.getAlternativeNames() + ", oldProperty=" + this.getOldProperty() + ", jsonType=" + this.getJsonType() + ")";
     }
 }

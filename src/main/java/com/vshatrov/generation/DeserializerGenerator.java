@@ -23,8 +23,11 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.vshatrov.utils.Utils.filer;
+import static com.vshatrov.utils.Utils.newVarableName;
 
 /**
+ * Generates JsonDeserializer implementation source code, based on given {@link BeanDescription}
+ *
  * @author Viktor Shatrov.
  */
 public class DeserializerGenerator {
@@ -176,7 +179,7 @@ public class DeserializerGenerator {
                 .returns(beanClass)
                 .addException(IOException.class);
 
-        String varName = instantiate(beanClass, deserializeImpl);
+        String varName = instantiate(currentDeserInfo.getUnit(), deserializeImpl);
 
         currentDeserInfo.getPrimitiveProps().forEach((name, prop) -> {
             deserializeImpl.addStatement("boolean $L = false", presenceFlag(name));
@@ -208,10 +211,11 @@ public class DeserializerGenerator {
         });
     }
 
-    private String instantiate(ClassName beanClass, MethodSpec.Builder deserializeImpl) {
-        String varName = "_" + currentDeserInfo.getUnit().getSimpleName().toLowerCase();
 
-        deserializeImpl.addStatement("$1T $2L = new $1T()", beanClass, varName);
+    private String instantiate(BeanDescription unit, MethodSpec.Builder deserializeImpl) {
+        String varName = "_" + unit.getSimpleName().toLowerCase();
+
+        deserializeImpl.addStatement("$1T $2L = new $1T()", unit.getClassName(), varName);
         return varName;
     }
 
@@ -264,7 +268,7 @@ public class DeserializerGenerator {
 
     /**
      * @param readMethod - method to which property reading code will be pasted
-     * @param property to read
+     * @param property   to read
      * @return name of variable in which given property is read.
      */
     private String addPropertyReading(MethodSpec.Builder readMethod, Property property) throws GenerationException {
@@ -291,7 +295,7 @@ public class DeserializerGenerator {
             currentDeserInfo.getReadMethods().put(withOldTypeRead.name, withOldTypeRead);
         } else {
             readMethod.addStatement("($1T) $2L.deserialize(parser, ctxt)",
-                                    property.getTName(), deserializerName(property.getTName()));
+                    property.getTName(), deserializerName(property.getTName()));
             currentDeserInfo.getProvided().add(property.getTName());
         }
 
@@ -299,7 +303,7 @@ public class DeserializerGenerator {
     }
 
     private MethodSpec withOldTypeRead(Property property) throws GenerationException {
-        MethodSpec.Builder builder = MethodSpec
+        MethodSpec.Builder method = MethodSpec
                 .methodBuilder("read_" + property.getName())
                 .addModifiers(Modifier.PRIVATE)
                 .returns(property.getTName())
@@ -307,10 +311,9 @@ public class DeserializerGenerator {
                 .addParameter(DeserializationContext.class, "ctxt")
                 .addException(IOException.class);
 
+        method.beginControlFlow("if (parser.currentToken() != JsonToken.START_OBJECT)");
 
-        builder
-                .beginControlFlow("if (parser.currentToken() != JsonToken.START_OBJECT)")
-                .addStatement("$1T ret = new $1T()", property.getTName());
+        String resVar = instantiate(property, method);
 
         BeanDescription description = Inspector.getDescription(property.getTypeName())
                 .orElseThrow(() -> new GenerationException("Couldn't access type information for " + property.getTypeName()));
@@ -320,23 +323,22 @@ public class DeserializerGenerator {
                 .findAny()
                 .orElseThrow(() -> new GenerationException(
                         "Couldn't find " + property.getOldProperty() + " property inside " + property.getName()));
-        String var = addPropertyReading(builder, oldProperty);
-        assignObjectsProperty(builder, "ret", oldProperty, var, false);
-        builder
-                .addStatement("return ret")
+        String var = addPropertyReading(method, oldProperty);
+        assignObjectsProperty(method, resVar, oldProperty, var, false);
+        method.addStatement("return $L", resVar)
                 .nextControlFlow("else");
+
         property.setOldProperty(null);
-        String propVarName = addPropertyReading(builder, property);
-        builder.addStatement("return $L", propVarName);
-        builder.endControlFlow();
-        return builder.build();
+        String propVarName = addPropertyReading(method, property);
+        method.addStatement("return $L", propVarName);
+        method.endControlFlow();
+        return method.build();
     }
 
     /**
-     *
-     * @param readMethod method to insert code in
-     * @param property property to assign
-     * @param propVarName name of variable with property value
+     * @param readMethod         method to insert code in
+     * @param property           property to assign
+     * @param propVarName        name of variable with property value
      * @param presenceFlagAssign true if property presence flag must be assigned too.
      */
     private void assignObjectsProperty(MethodSpec.Builder readMethod, String objVarName,
@@ -352,8 +354,16 @@ public class DeserializerGenerator {
         }
     }
 
+    private String instantiate(Property property, MethodSpec.Builder method) {
+        String varName = newVarableName();
+        method
+                .addCode("$[$T $L = ", property.getTName(), varName)
+                .addCode(property.defaultInstance());
+        return varName;
+    }
+
     private MethodSpec mapRead(MapProp property) throws GenerationException {
-        MethodSpec.Builder builder = MethodSpec
+        MethodSpec.Builder method = MethodSpec
                 .methodBuilder("read_map_" + property.getName())
                 .addModifiers(Modifier.PRIVATE)
                 .returns(property.getTName())
@@ -362,13 +372,10 @@ public class DeserializerGenerator {
                 .addException(IOException.class)
                 .addStatement("verifyCurrent(parser, JsonToken.START_OBJECT)");
 
-        //fixme: here is assumption that if map class is not java.util.Map then it is not abstract
-        TypeName inst = Utils.erasure(property.getTypeName()).equals("java.util.Map")
-                ? ParameterizedTypeName.get(ClassName.get(HashMap.class), property.getKey().getTName(), property.getValue().getTName())
-                : property.getTName();
 
-        builder
-                .addStatement("$T res = new $T()", property.getTName(), inst)
+        String resultVar = instantiate(property, method);
+
+        method
                 .addStatement("String keyStr = parser.nextFieldName()")
                 .beginControlFlow(" for (; keyStr != null; keyStr = parser.nextFieldName())")
                 .addStatement("$T key = $L", property.getKey().getTName(), property.getKey().parseMethod("keyStr"))
@@ -378,20 +385,20 @@ public class DeserializerGenerator {
                 .addStatement("value = null")
                 .nextControlFlow("else");
 
-        String var = addPropertyReading(builder, property.getValue());
+        String var = addPropertyReading(method, property.getValue());
 
-        builder
+        method
                 .addStatement("value = $L", var)
                 .endControlFlow()
-                .addStatement("res.put(key, value)")
+                .addStatement("$L.put(key, value)", resultVar)
                 .endControlFlow()
-                .addStatement("return res");
+                .addStatement("return $L", resultVar);
 
-        return builder.build();
+        return method.build();
     }
 
     private MethodSpec containerRead(ContainerProp property) throws GenerationException {
-        MethodSpec.Builder builder = MethodSpec
+        MethodSpec.Builder method = MethodSpec
                 .methodBuilder("read_container_" + property.getName())
                 .addModifiers(Modifier.PRIVATE)
                 .returns(property.getTName())
@@ -403,31 +410,31 @@ public class DeserializerGenerator {
                 .endControlFlow();
 
         if (property instanceof ArrayProp) {
-           addArrayReading(builder, (ArrayProp) property);
+            addArrayReading(method, (ArrayProp) property);
         } else {
-            builder.addStatement("$1T arr = new $2T<>()", property.getTName(), ClassName.get(ArrayList.class));
-            builder.beginControlFlow("while (parser.nextToken() != JsonToken.END_ARRAY)");
-            String propVarName = addPropertyReading(builder, property.getElement());
-            builder
-                    .addStatement("arr.add($L)", propVarName)
+            String containerVar = instantiate(property, method);
+            method.beginControlFlow("while (parser.nextToken() != JsonToken.END_ARRAY)");
+            String elementVar = addPropertyReading(method, property.getElement());
+            method
+                    .addStatement("$L.add($L)", containerVar, elementVar)
                     .endControlFlow()
                     .addStatement("verifyCurrent(parser, JsonToken.END_ARRAY)")
-                    .addStatement("return arr");
+                    .addStatement("return $L", containerVar);
         }
 
-        return builder.build();
+        return method.build();
     }
 
     private void addArrayReading(MethodSpec.Builder builder, ArrayProp property) {
         currentDeserInfo.getProvidedArrays().add(property);
 
         builder.addStatement("$1T arr = ($1T) $2L.deserialize(parser, ctxt)",
-                                property.getTName(), deserializerName(property.getTName()))
+                property.getTName(), deserializerName(property.getTName()))
                 .addStatement("return arr");
     }
 
 
-    private void addConstructors(TypeSpec.Builder deserializerBuilder ,ClassName beanClass) {
+    private void addConstructors(TypeSpec.Builder deserializerBuilder, ClassName beanClass) {
         ParameterizedTypeName classBean = ParameterizedTypeName.get(ClassName.get(Class.class), beanClass);
         MethodSpec constrOneArg = MethodSpec.constructorBuilder()
                 .addParameter(ParameterSpec.builder(classBean, "t").build())
@@ -436,7 +443,7 @@ public class DeserializerGenerator {
                 .build();
 
         MethodSpec constrDef = MethodSpec.constructorBuilder()
-                .addStatement("this($T.class)",  currentDeserInfo.getUnit().getClassName())
+                .addStatement("this($T.class)", currentDeserInfo.getUnit().getClassName())
                 .addModifiers(Modifier.PUBLIC)
                 .build();
 
@@ -459,7 +466,7 @@ public class DeserializerGenerator {
         ClassName deserClass = ClassName.get(JsonDeserializer.class);
         currentDeserInfo.getProvided().forEach((typeName) -> {
             resolve.addStatement("javaType = typeFactory.constructType(new $T<$L>(){})",
-                        ClassName.get(TypeReference.class), typeName);
+                    ClassName.get(TypeReference.class), typeName);
             resolve.addStatement("$L = ctxt.findRootValueDeserializer(javaType)", deserializerName(typeName));
 
             ParameterizedTypeName deserType = ParameterizedTypeName.get(deserClass, TypeName.get(Object.class));
@@ -471,7 +478,7 @@ public class DeserializerGenerator {
 
         resolve.addStatement("$T arrayType", ClassName.get(ArrayType.class));
 
-        currentDeserInfo.getProvidedArrays().forEach(arrayProp ->{
+        currentDeserInfo.getProvidedArrays().forEach(arrayProp -> {
             TypeName deserType;
             if (arrayProp.isPrimitiveArray()) {
                 deserType = ParameterizedTypeName.get(deserClass, arrayProp.getTName());
@@ -521,14 +528,14 @@ public class DeserializerGenerator {
     }
 
     private String deserializerName(TypeName typeName) {
-       String res;
-       String simple = Utils.qualifiedToSimple(typeName.toString());
-       res = Character.toLowerCase(simple.charAt(0)) + simple.substring(1) + "_deserializer";
-       return typeName instanceof ArrayTypeName ? "ar_" + res : res;
+        String res;
+        String simple = Utils.qualifiedToSimple(typeName.toString());
+        res = Character.toLowerCase(simple.charAt(0)) + simple.substring(1) + "_deserializer";
+        return typeName instanceof ArrayTypeName ? "ar_" + res : res;
     }
 
     private String readMethodName(String name) {
-        return "read_"+name.toLowerCase();
+        return "read_" + name.toLowerCase();
     }
 
     private String convertToStringAlternativeName(String mainName, String alternativeName, int i) {
