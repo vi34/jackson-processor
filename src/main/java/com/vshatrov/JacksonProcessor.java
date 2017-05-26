@@ -3,7 +3,6 @@ package com.vshatrov;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.auto.service.AutoService;
 import com.squareup.javapoet.JavaFile;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
@@ -36,7 +35,6 @@ import static com.vshatrov.utils.Utils.*;
 /**
  * @author Viktor Shatrov.
  */
-@AutoService(javax.annotation.processing.Processor.class)
 @SupportedAnnotationTypes({
         "com.vshatrov.annotations.*",
         JacksonProcessor.JSON_SERIALIZE,

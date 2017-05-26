@@ -25,7 +25,6 @@ public class Debug {
     private static File testFile = new File("test.json");
 
     public static void main(String[] args) throws IOException {
-        Compilation.classLoader = new URLClassLoader(new URL[]{Compilation.targetFile.toURI().toURL()});
         Compilation.compileDir(Paths.get("./src/main/test/com/vshatrov/raw/"));
         BufferedWriter writer = Files.newWriter(testFile, Charset.defaultCharset());
         MappingJsonFactory factory = new MappingJsonFactory();

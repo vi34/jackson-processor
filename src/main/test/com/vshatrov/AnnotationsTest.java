@@ -38,7 +38,6 @@ public class AnnotationsTest {
     public static void setUp() throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         factory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        Compilation.classLoader = new URLClassLoader(new URL[]{Compilation.targetFile.toURI().toURL()});
         Compilation.compile(Paths.get("./src/main/test/com/vshatrov/raw/annotations").toFile().listFiles());
     }
 

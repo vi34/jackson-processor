@@ -38,7 +38,6 @@ public class SerializationTest {
     public static void setUp() throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         factory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        Compilation.classLoader = new URLClassLoader(new URL[]{Compilation.targetFile.toURI().toURL()});
         Compilation.compileDir(Paths.get("./src/main/test/com/vshatrov/raw/"));
     }
 

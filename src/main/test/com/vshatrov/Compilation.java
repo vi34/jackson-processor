@@ -7,15 +7,14 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.sun.tools.javac.util.List;
 import com.vshatrov.generation.DeserializerGenerator;
 import com.vshatrov.generation.SerializerGenerator;
-import org.apache.commons.io.FileUtils;
 
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -25,9 +24,9 @@ import java.util.Random;
 public class Compilation {
     public static Random random = new Random();
 
-    public static final String TARGET_DIR = "./target/generated-sources/annotations/";
+    public static final String TARGET_DIR = "./target/generated/processor/";
     public static File targetFile = new File(TARGET_DIR);
-    static URLClassLoader classLoader;
+    public static URLClassLoader classLoader;
 
     public static void compileDir(Path dir) throws IOException {
         compile(Files.list(dir)
@@ -36,8 +35,12 @@ public class Compilation {
                 .toArray(File[]::new));
     }
 
+    /**
+     * Compiles provided files with annotation processor.
+     * @throws IOException
+     */
     public static void compile(File... files) throws IOException {
-        FileUtils.deleteDirectory(targetFile);
+        deleteDir(targetFile);
         targetFile.mkdirs();
         final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         final DiagnosticCollector< JavaFileObject > diagnostics = new DiagnosticCollector<>();
@@ -58,11 +61,28 @@ public class Compilation {
                 System.err.println(diagnostic.getMessage(null));
             }
         }
-
         manager.close();
+        if (classLoader == null) {
+            classLoader = new URLClassLoader(new URL[]{Compilation.targetFile.toURI().toURL()});
+        }
     }
 
-    static <T> boolean loadSerializer(Class<? extends T> type, ObjectMapper mapper) {
+    private static void deleteDir(File file) {
+        File[] contents = file.listFiles();
+        if (contents != null) {
+            for (File f : contents) {
+                deleteDir(f);
+            }
+        }
+        file.delete();
+    }
+
+
+    /**
+     * Finds and registers generated serializer in mapper for specified type.
+     * @return true if serializer loaded succesfully
+     */
+    public static <T> boolean loadSerializer(Class<? extends T> type, ObjectMapper mapper) {
         try {
             String className = "com.vshatrov" + SerializerGenerator.PACKAGE_MODIFIER
                     + "." + type.getSimpleName()  + SerializerGenerator.SUFFIX;
@@ -76,7 +96,11 @@ public class Compilation {
         }
     }
 
-    static <T> boolean loadDeserializer(Class<T> type, ObjectMapper mapper) {
+    /**
+     * Finds and registers generated deserializer in mapper for specified type.
+     * @return true if serializer loaded succesfully
+     */
+    public static <T> boolean loadDeserializer(Class<T> type, ObjectMapper mapper) {
         try {
             String className = "com.vshatrov" + DeserializerGenerator.PACKAGE_MODIFIER
                                 + "." + type.getSimpleName() + DeserializerGenerator.SUFFIX;

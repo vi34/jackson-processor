@@ -30,12 +30,13 @@ public class VariousTests {
     @SuppressWarnings("unchecked")
     @BeforeClass
     public static void setUp() throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
-        Compilation.classLoader = new URLClassLoader(new URL[]{Compilation.targetFile.toURI().toURL()});
         Compilation.compileDir(Paths.get("./src/main/test/com/vshatrov/raw/"));
         factory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.WRAPPER_OBJECT);
-        mapper.registerModule(new APTModule());
+        APTModule module = new APTModule();
+        module.setClassLoader(Compilation.classLoader);
+        mapper.registerModule(module);
     }
 
 

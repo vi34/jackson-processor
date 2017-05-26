@@ -10,10 +10,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * Optional module to register generated serializers/deserializers in Jackson.
+ * Optional module to register all generated serializers/deserializers in Jackson.
  * @author Viktor Shatrov.
  */
 public class APTModule extends SimpleModule {
+
+    private ClassLoader classLoader;
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
 
     @Override
     public String getModuleName() {
@@ -31,7 +37,7 @@ public class APTModule extends SimpleModule {
             Files.lines(Paths.get("GeneratedSerializers.txt")).forEach(l -> {
                 try {
                     String[] classes = l.split(":");
-                    Class<?> ser = Class.forName(classes[0]);
+                    Class<?> ser = loadClass(classes[0]);
                     addSerializer((JsonSerializer<?>) ser.newInstance());
                 } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                     e.printStackTrace();
@@ -41,7 +47,7 @@ public class APTModule extends SimpleModule {
             Files.lines(Paths.get("GeneratedDeserializers.txt")).forEach(l -> {
                 try {
                     String[] classes = l.split(":");
-                    Class<?> deser = Class.forName(classes[0]);
+                    Class<?> deser = loadClass(classes[0]);
                     JsonDeserializer<Object> jsonDeserializer = (JsonDeserializer<Object>) deser.newInstance();
                     addDeserializer((Class<Object>)jsonDeserializer.handledType(), jsonDeserializer);
                 } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
@@ -52,5 +58,13 @@ public class APTModule extends SimpleModule {
             e.printStackTrace();
         }
         super.setupModule(context);
+    }
+
+    public Class<?> loadClass(String className) throws ClassNotFoundException {
+        if (classLoader == null) {
+            return Class.forName(className);
+        } else {
+            return classLoader.loadClass(className);
+        }
     }
 }

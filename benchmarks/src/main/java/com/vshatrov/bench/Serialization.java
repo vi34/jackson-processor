@@ -27,8 +27,6 @@ public class Serialization {
 
     ObjectMapper mapper;
     MappingJsonFactory factory;
-    Pojo pojo;
-    Complex complex;
     MediaItem mediaItem;
 
     @Param({"afterBurner", "handWritten", "reflection", "processor"})
@@ -56,26 +54,9 @@ public class Serialization {
             default: // reflection
         }
 
-        pojo = Pojo.makePojo();
-        complex = Complex.makeComplex(3);
         mediaItem = MediaItem.buildItem();
     }
 
-   /* @Benchmark
-    @BenchmarkMode({Mode.AverageTime})
-    @OutputTimeUnit(TimeUnit.NANOSECONDS)
-    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
-    public String pojo() throws JsonProcessingException {
-        return mapper.writeValueAsString(pojo);
-    }*/
-
-   /* @Benchmark
-    @BenchmarkMode({Mode.AverageTime})
-    @OutputTimeUnit(TimeUnit.NANOSECONDS)
-    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
-    public String complex() throws JsonProcessingException {
-        return mapper.writeValueAsString(complex);
-    }*/
 
     @Benchmark
     @BenchmarkMode({Mode.AverageTime})
@@ -88,9 +69,8 @@ public class Serialization {
     public static void main(String[] args) throws RunnerException {
         Options options = new OptionsBuilder()
                 .include(Serialization.class.getSimpleName())
-                .warmupIterations(4)
-                .measurementIterations(12)
-                .output("profile.txt")
+                .warmupIterations(3)
+                .measurementIterations(4)
                 .forks(1)
                 .build();
 
