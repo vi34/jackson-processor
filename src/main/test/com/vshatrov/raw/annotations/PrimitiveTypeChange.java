@@ -10,7 +10,7 @@ import com.vshatrov.raw.Pojo;
  */
 @JsonSerialize
 @JsonDeserialize
-public class TypeChange {
+public class PrimitiveTypeChange {
 
     //@JsonFilter("")
     public String name;
@@ -18,18 +18,18 @@ public class TypeChange {
     @OldProperty("i1")
     public Pojo pojo;
 
-    public TypeChange(String name, Pojo pojo) {
+    public PrimitiveTypeChange(String name, Pojo pojo) {
         this.name = name;
         this.pojo = pojo;
     }
 
-    public TypeChange() {
+    public PrimitiveTypeChange() {
     }
 
     public boolean equals(Object o) {
         if (o == this) return true;
-        if (!(o instanceof TypeChange)) return false;
-        final TypeChange other = (TypeChange) o;
+        if (!(o instanceof PrimitiveTypeChange)) return false;
+        final PrimitiveTypeChange other = (PrimitiveTypeChange) o;
         if (!other.canEqual((Object) this)) return false;
         final Object this$name = this.name;
         final Object other$name = other.name;
@@ -51,7 +51,7 @@ public class TypeChange {
     }
 
     protected boolean canEqual(Object other) {
-        return other instanceof TypeChange;
+        return other instanceof PrimitiveTypeChange;
     }
 
     public String toString() {

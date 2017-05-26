@@ -1,63 +1,78 @@
 package com.vshatrov.raw;
 
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.*;
+
+import static com.vshatrov.Compilation.random;
 
 /**
  * @author Viktor Shatrov.
  */
-//@JsonSerialize
+@JsonSerialize
+@JsonDeserialize
 public class ComplexStructures {
     public List<List<Integer>> lInts;
-    public Map<List<Integer>, List<String>> listListMap;
     public Map<String, Map<Integer, String>> stringMapMap;
 
+    // Not implemented yet. not works natively with standard jackson deserializer
+    //public Map<List<Integer>, List<String>> listListMap;
 
-    public ComplexStructures(List<List<Integer>> lInts, Map<List<Integer>, List<String>> listListMap, Map<String, Map<Integer, String>> stringMapMap) {
+
+
+    public ComplexStructures(List<List<Integer>> lInts, Map<String, Map<Integer, String>> stringMapMap) {
         this.lInts = lInts;
-        this.listListMap = listListMap;
         this.stringMapMap = stringMapMap;
     }
 
     public ComplexStructures() {
     }
 
-    public boolean equals(Object o) {
-        if (o == this) return true;
-        if (!(o instanceof ComplexStructures)) return false;
-        final ComplexStructures other = (ComplexStructures) o;
-        if (!other.canEqual((Object) this)) return false;
-        final Object this$lInts = this.lInts;
-        final Object other$lInts = other.lInts;
-        if (this$lInts == null ? other$lInts != null : !this$lInts.equals(other$lInts)) return false;
-        final Object this$listListMap = this.listListMap;
-        final Object other$listListMap = other.listListMap;
-        if (this$listListMap == null ? other$listListMap != null : !this$listListMap.equals(other$listListMap))
-            return false;
-        final Object this$stringMapMap = this.stringMapMap;
-        final Object other$stringMapMap = other.stringMapMap;
-        if (this$stringMapMap == null ? other$stringMapMap != null : !this$stringMapMap.equals(other$stringMapMap))
-            return false;
-        return true;
+    public static ComplexStructures make() {
+        List<List<Integer>> llints = Arrays.asList(Arrays.asList(1,23,4)
+                , Arrays.asList(23,1234,5,5345)
+                , Arrays.asList(1,23,4));
+
+        Map<String, Map<Integer, String>> stringMapMap = new TreeMap<>();
+        Map<Integer, String> m1 = new HashMap<>();
+        Map<Integer, String> m2 = new HashMap<>();
+
+        stringMapMap.put("one", m1);
+        stringMapMap.put("two", m2);
+
+        m1.put(1, "o");
+        m1.put(234, "234");
+        m1.put(12334, "1324");
+        m2.put(3, "3");
+        m2.put(4, "4");
+
+        return new ComplexStructures(llints, stringMapMap);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ComplexStructures that = (ComplexStructures) o;
+
+        if (lInts != null ? !lInts.equals(that.lInts) : that.lInts != null) return false;
+        return stringMapMap != null ? stringMapMap.equals(that.stringMapMap) : that.stringMapMap == null;
+    }
+
+    @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $lInts = this.lInts;
-        result = result * PRIME + ($lInts == null ? 43 : $lInts.hashCode());
-        final Object $listListMap = this.listListMap;
-        result = result * PRIME + ($listListMap == null ? 43 : $listListMap.hashCode());
-        final Object $stringMapMap = this.stringMapMap;
-        result = result * PRIME + ($stringMapMap == null ? 43 : $stringMapMap.hashCode());
+        int result = lInts != null ? lInts.hashCode() : 0;
+        result = 31 * result + (stringMapMap != null ? stringMapMap.hashCode() : 0);
         return result;
     }
 
-    protected boolean canEqual(Object other) {
-        return other instanceof ComplexStructures;
-    }
-
+    @Override
     public String toString() {
-        return "com.vshatrov.raw.ComplexStructures(lInts=" + this.lInts + ", listListMap=" + this.listListMap + ", stringMapMap=" + this.stringMapMap + ")";
+        return "ComplexStructures{" +
+                "lInts=" + lInts +
+                ", stringMapMap=" + stringMapMap +
+                '}';
     }
 }

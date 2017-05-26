@@ -38,7 +38,7 @@ public class Compilation {
 
     public static void compile(File... files) throws IOException {
         FileUtils.deleteDirectory(targetFile);
-        targetFile.mkdir();
+        targetFile.mkdirs();
         final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         final DiagnosticCollector< JavaFileObject > diagnostics = new DiagnosticCollector<>();
         final StandardJavaFileManager manager = compiler.getStandardFileManager(diagnostics, null, null );

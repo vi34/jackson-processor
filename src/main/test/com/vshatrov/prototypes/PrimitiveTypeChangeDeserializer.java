@@ -13,12 +13,12 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.type.ArrayType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.vshatrov.raw.Pojo;
-import com.vshatrov.raw.annotations.TypeChange;
+import com.vshatrov.raw.annotations.PrimitiveTypeChange;
 
 import java.io.IOException;
 import java.util.HashMap;
 
-public final class TypeChangeDeserializer extends StdDeserializer<TypeChange> implements ResolvableDeserializer {
+public final class PrimitiveTypeChangeDeserializer extends StdDeserializer<PrimitiveTypeChange> implements ResolvableDeserializer {
     public static final HashMap<String, Integer> fullFieldToIndex = new HashMap<String, Integer>();
 
     public static final String FULL_FIELD_NAME = "name";
@@ -40,23 +40,23 @@ public final class TypeChangeDeserializer extends StdDeserializer<TypeChange> im
 
     private JsonDeserializer<Object> pojo_deserializer;
 
-    protected TypeChangeDeserializer(Class<TypeChange> t) {
+    protected PrimitiveTypeChangeDeserializer(Class<PrimitiveTypeChange> t) {
         super(t);
     }
 
-    public TypeChangeDeserializer() {
+    public PrimitiveTypeChangeDeserializer() {
         this(null);
     }
 
     @Override
-    public TypeChange deserialize(JsonParser parser, DeserializationContext ctxt) throws
+    public PrimitiveTypeChange deserialize(JsonParser parser, DeserializationContext ctxt) throws
             IOException {
         return read_typechange(parser, ctxt);
     }
 
-    public TypeChange read_typechange(JsonParser parser, DeserializationContext ctxt) throws
+    public PrimitiveTypeChange read_typechange(JsonParser parser, DeserializationContext ctxt) throws
             IOException {
-        TypeChange _typechange = new TypeChange();
+        PrimitiveTypeChange _typechange = new PrimitiveTypeChange();
         if (parser.nextFieldName(FIELD_NAME)) {
             parser.nextToken();
             String name_read = parser.currentToken() == JsonToken.VALUE_NULL ? null : parser.getText();

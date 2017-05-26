@@ -1,31 +1,26 @@
 package com.vshatrov;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.vshatrov.prototypes.AlternativesDeserializer;
-import com.vshatrov.prototypes.TypeChangeDeserializer;
+import com.vshatrov.prototypes.ObjectTypeChangeDeserializer;
 import com.vshatrov.raw.*;
 import com.vshatrov.raw.annotations.Alternatives;
+import com.vshatrov.raw.annotations.ObjectTypeChange;
 import com.vshatrov.raw.annotations.Renaming;
-import com.vshatrov.raw.annotations.TypeChange;
+import com.vshatrov.raw.annotations.PrimitiveTypeChange;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 
 import static com.vshatrov.Compilation.loadDeserializer;
 import static com.vshatrov.Compilation.loadSerializer;
@@ -96,23 +91,73 @@ public class AnnotationsTest {
 
 
     @Test
-    public void type_change() throws IOException {
-        Assert.assertTrue(loadDeserializer(TypeChange.class, mapper));
+    public void primitive_type_change() throws IOException {
+        Assert.assertTrue(loadDeserializer(PrimitiveTypeChange.class, mapper));
 
         String ordinary_json = "{\"name\": \"new\", \"pojo\": {\"i1\": 1, \"a2\": 2}}";
         String old_json = "{\"name\": \"old\", \"pojo\": 13 }";
 
-        TypeChange source  = new TypeChange("new", new Pojo(1, 2));
+        PrimitiveTypeChange source  = new PrimitiveTypeChange("new", new Pojo(1, 2));
 
-        TypeChange read = mapper.readValue(ordinary_json, TypeChange.class);
+        PrimitiveTypeChange read = mapper.readValue(ordinary_json, PrimitiveTypeChange.class);
         Assert.assertEquals(source, read);
 
-        source  = new TypeChange("old", new Pojo(13, 0));
+        source  = new PrimitiveTypeChange("old", new Pojo(13, 0));
 
-        read = mapper.readValue(old_json, TypeChange.class);
+        read = mapper.readValue(old_json, PrimitiveTypeChange.class);
         Assert.assertEquals(source, read);
 
     }
+
+    @Test
+    public void object_type_change() throws IOException {
+        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.WRAPPER_OBJECT);
+        //  Assert.assertTrue(loadDeserializer(ObjectTypeChange.class, mapper));
+
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(ObjectTypeChange.class, new ObjectTypeChangeDeserializer());
+        mapper.registerModule(module);
+
+        ObjectTypeChange source = new ObjectTypeChange("new", new Complex(-1, new Pojo(2, 3.5)));
+
+        ObjectTypeChange read = mapper.readValue(ordinary_object, ObjectTypeChange.class);
+        Assert.assertEquals(source, read);
+
+        source  = new ObjectTypeChange("old", new Complex(0, new Pojo(2, 3.5)));
+
+        read = mapper.readValue(old_object, ObjectTypeChange.class);
+        Assert.assertEquals(source, read);
+
+    }
+
+    private String old_object = "{\n" +
+            "  \"com.vshatrov.raw.annotations.ObjectTypeChange\" : {\n" +
+            "    \"name\" : \"old\",\n" +
+            "    \"object\" : {\n" +
+            "      \"com.vshatrov.raw.Pojo\" : {\n" +
+            "        \"i1\" : 2,\n" +
+            "        \"a2\" : 3.5\n" +
+            "      }\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+
+    private String ordinary_object = "{\n" +
+            "  \"com.vshatrov.raw.annotations.ObjectTypeChange\" : {\n" +
+            "    \"name\" : \"new\",\n" +
+            "    \"object\" : {\n" +
+            "      \"com.vshatrov.raw.Complex\" : {\n" +
+            "        \"i1\" : -1,\n" +
+            "        \"pojo\" : {\n" +
+            "          \"com.vshatrov.raw.Pojo\" : {\n" +
+            "            \"i1\" : 2,\n" +
+            "            \"a2\" : 3.5\n" +
+            "          }\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
 
 
 

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.ser.ResolvableSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -51,6 +52,7 @@ public class SerializerGenerator {
         addSerializeImplementation(serializerClassBuilder, beanClass);
         addConstants(serializerClassBuilder);
         addResolve(serializerClassBuilder);
+        addTyping(serializerClassBuilder, beanClass);
 
         JavaFile javaFile = JavaFile.builder(getPackageName(unit), serializerClassBuilder.build())
                 .indent("    ")
@@ -61,6 +63,23 @@ public class SerializerGenerator {
         processed.put(unit.getTypeName(), currentSerializationInfo);
 
         return currentSerializationInfo;
+    }
+
+    private void addTyping(TypeSpec.Builder serializerClassBuilder, ClassName beanClass) {
+        MethodSpec serializeWithType = MethodSpec.methodBuilder("serializeWithType")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(void.class)
+                .addParameter(beanClass, "value")
+                .addParameter(JsonGenerator.class, "gen")
+                .addParameter(SerializerProvider.class, "provider")
+                .addParameter(TypeSerializer.class, "typeSer")
+                .addException(IOException.class)
+                .addStatement("typeSer.writeTypePrefixForObject(value, gen)")
+                .addStatement("$L(value, gen, provider)", writeMethodName(currentSerializationInfo.getUnit().getSimpleName()))
+                .addStatement("typeSer.writeTypeSuffixForObject(value, gen)")
+                .build();
+        serializerClassBuilder.addMethod(serializeWithType);
     }
 
     public void addConstants(TypeSpec.Builder serializerClassBuilder) {
@@ -82,7 +101,9 @@ public class SerializerGenerator {
                 .addParameter(SerializerProvider.class, "provider")
                 .returns(void.class)
                 .addException(IOException.class)
+                .addStatement("gen.writeStartObject()")
                 .addStatement("$L(value, gen, provider)", writeMethodName(unit.getSimpleName()))
+                .addStatement("gen.writeEndObject()")
                 .build();
 
         return TypeSpec.classBuilder(unit.getSimpleName() + SUFFIX)
@@ -99,8 +120,7 @@ public class SerializerGenerator {
                 .addParameter(JsonGenerator.class, "gen")
                 .addParameter(SerializerProvider.class, "provider")
                 .returns(void.class)
-                .addException(IOException.class)
-                .addStatement("gen.writeStartObject()");
+                .addException(IOException.class);
 
         for (Property property : currentSerializationInfo.getUnit().getProps()) {
 
@@ -108,7 +128,6 @@ public class SerializerGenerator {
             addProperty(property, serializeImpl, "value");
         }
 
-        serializeImpl.addStatement("gen.writeEndObject()");
         serializerBuilder.addMethod(serializeImpl.build());
     }
 

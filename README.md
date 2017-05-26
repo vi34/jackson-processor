@@ -1,7 +1,7 @@
 # jackson-processor
 Annotation Processor for Jackson library
 
-JacksonProcessor generates implementation of _JsonSerializer_ and _JsonDeserializer_ classes.
+JacksonProcessor generates in compile time implementations of _JsonSerializer_ and _JsonDeserializer_ classes.
 
 To generate JsonSerializer, class must be marked with Jackson _@JsonSerialize_ annotation. 
 To generate JsonDeserializer, class must be marked with Jackson _@JsonDeserialize_ annotation.
@@ -15,6 +15,17 @@ To disable automatic registration for all classes set processor option _AUTO_REG
 You can register generated classes through module:
 _mapper.registerModule(new APTModule());_
 
+
+If data class contains unknown classes with unavailable type information for processor, 
+these classes will be resolved using standard Jackson in runtime.  
+
+Implementations would not be generated for classes in which processor encounters unimplemented Jackson annotation. 
+
+#### Implemented annotations
+
+#### Not implemented
+- Object as key for Map. 
+- Type inclusion mechanisms: JsonTypeInfo.As.PROPERTY, JsonTypeInfo.As.EXTERNAL_PROPERTY, JsonTypeInfo.As.EXISTING_PROPERTY 
 
 #### Tests
 Tests integrated in main project. 

@@ -3,19 +3,14 @@ package com.vshatrov;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import javax.tools.JavaFileManager;
-import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
+ * Optional module to register generated serializers/deserializers in Jackson.
  * @author Viktor Shatrov.
  */
 public class APTModule extends SimpleModule {
@@ -37,7 +32,6 @@ public class APTModule extends SimpleModule {
                 try {
                     String[] classes = l.split(":");
                     Class<?> ser = Class.forName(classes[0]);
-                    Class<?> type = Class.forName(classes[1]);
                     addSerializer((JsonSerializer<?>) ser.newInstance());
                 } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                     e.printStackTrace();
@@ -48,7 +42,6 @@ public class APTModule extends SimpleModule {
                 try {
                     String[] classes = l.split(":");
                     Class<?> deser = Class.forName(classes[0]);
-                    Class<?> type = Class.forName(classes[1]);
                     JsonDeserializer<Object> jsonDeserializer = (JsonDeserializer<Object>) deser.newInstance();
                     addDeserializer((Class<Object>)jsonDeserializer.handledType(), jsonDeserializer);
                 } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {

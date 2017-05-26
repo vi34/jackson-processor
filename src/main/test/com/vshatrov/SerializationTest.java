@@ -18,6 +18,14 @@ import java.util.*;
 import static com.vshatrov.Compilation.loadSerializer;
 
 /**
+ *
+ * Round-trip tests to check serialization uses standard Jackson deserializer.
+ *
+ * Common test:
+ * 1) test data serialized to json
+ * 2) json deserialized to object
+ * 3) result compared with initial object
+ *
  * @author Viktor Shatrov.
  */
 public class SerializationTest {
@@ -40,7 +48,7 @@ public class SerializationTest {
 
         WithString val = new WithString(1, 1.2, "str", "name");
 
-        check(val, WithString.class);
+        round_trip_check(val, WithString.class);
     }
 
 
@@ -50,7 +58,7 @@ public class SerializationTest {
 
         Pojo val = new Pojo(13, 0.4);
 
-        check(val, Pojo.class);
+        round_trip_check(val, Pojo.class);
     }
 
     @Test
@@ -59,7 +67,7 @@ public class SerializationTest {
 
         Complex val = Complex.make();
 
-        check(val, Complex.class);
+        round_trip_check(val, Complex.class);
     }
 
     @Test
@@ -69,7 +77,7 @@ public class SerializationTest {
         Boxing val = new Boxing(1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true,
                 1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true);
 
-        check(val, Boxing.class);
+        round_trip_check(val, Boxing.class);
     }
 
     @Test
@@ -79,7 +87,7 @@ public class SerializationTest {
         Accessors val = new Accessors(1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true,
                 1, 2.0, 'c', 321312421441241441L, 0.3f, (short) 11, (byte) 120, true);
 
-        check(val, Accessors.class);
+        round_trip_check(val, Accessors.class);
     }
 
     @Test
@@ -91,7 +99,7 @@ public class SerializationTest {
 
         Array val = new Array(ints, pojos, Arrays.asList(1 ,2,5), Arrays.asList(new Pojo(5, 6)), ens);
 
-        check(val, Array.class);
+        round_trip_check(val, Array.class);
     }
 
     @Test
@@ -100,7 +108,7 @@ public class SerializationTest {
 
         Enums val = new Enums(Enums.En.TWO);
 
-        check(val, Enums.class);
+        round_trip_check(val, Enums.class);
     }
 
     @Test
@@ -109,7 +117,7 @@ public class SerializationTest {
 
         Resolve val = Resolve.make();
 
-        check(val, Resolve.class);
+        round_trip_check(val, Resolve.class);
     }
 
     @Test
@@ -118,21 +126,21 @@ public class SerializationTest {
 
         Resolve val = null;
 
-        check(val, Resolve.class);
+        round_trip_check(val, Resolve.class);
 
         val = new Resolve("resolve", null, null);
-        check(val, Resolve.class);
+        round_trip_check(val, Resolve.class);
 
         Assert.assertTrue(loadSerializer(Complex.class, mapper));
 
         Complex c = new Complex(3, null);
-        check(c, Complex.class);
+        round_trip_check(c, Complex.class);
 
         Assert.assertTrue(loadSerializer(Array.class, mapper));
 
         Pojo[] pojos = {new Pojo(1, 0.2), null};
         Array arr = new Array(null, pojos, null, Arrays.asList(pojos), null);
-        check(arr, Array.class);
+        round_trip_check(arr, Array.class);
 
     }
 
@@ -142,7 +150,7 @@ public class SerializationTest {
 
         Static val = new Static(1, 2);
 
-        check(val, Static.class);
+        round_trip_check(val, Static.class);
     }
 
 
@@ -165,41 +173,17 @@ public class SerializationTest {
         t.put("pojo2", new Pojo(2, 0.6));
 
         Maps val = new Maps(props, h, t);
-        check(val, Maps.class);
+        round_trip_check(val, Maps.class);
     }
 
 
-
-    // not works with standard jackson deserializer
-   /* @Test
+    @Test
     public void complex_generic_structures() throws IOException{
         Assert.assertTrue(loadSerializer(ComplexStructures.class, mapper));
 
-        List<List<Integer>> llints = Arrays.asList(Arrays.asList(1,23,4)
-                                            , Arrays.asList(23,1234,5,5345)
-                                            , Arrays.asList(1,23,4));
-
-        Map<List<Integer>, List<String>> listListMap = new HashMap<>();
-        listListMap.put(llints.get(0), Arrays.asList("as", "bs", "foo"));
-        listListMap.put(llints.get(1), Arrays.asList("one", "two", "three", "four", "five"));
-        listListMap.put(llints.get(2), Arrays.asList("one", "two", "threefife"));
-
-        Map<String, Map<Integer, String>> stringMapMap = new TreeMap<>();
-        Map<Integer, String> m1 = new HashMap<>();
-        Map<Integer, String> m2 = new HashMap<>();
-
-        stringMapMap.put("one", m1);
-        stringMapMap.put("two", m2);
-
-        m1.put(1, "o");
-        m1.put(234, "234");
-        m1.put(12334, "1324");
-        m2.put(3, "3");
-        m2.put(4, "4");
-
-        ComplexStructures val = new ComplexStructures(llints, listListMap, stringMapMap);
-        check(val, ComplexStructures.class);
-    }*/
+        ComplexStructures val = ComplexStructures.make();
+        round_trip_check(val, ComplexStructures.class);
+    }
 
     /*@Test
     public void keyObjectMaps() throws IOException {
@@ -210,11 +194,14 @@ public class SerializationTest {
         kobj.put(new Pojo(1, 332.21), new Pojo(2, 0.6));
 
         KeyObjectMap val = new KeyObjectMap(kobj);
-        check(val, KeyObjectMap.class);
+        round_trip_check(val, KeyObjectMap.class);
     }*/
 
 
-    private <T> void check(T val, Class<T> clazz) throws IOException {
+    /**
+     * Checks serialization correctness by deserializing result with standard Jackson
+     */
+    private <T> void round_trip_check(T val, Class<T> clazz) throws IOException {
         String json = mapper.writeValueAsString(val);
         T read = mapper.readValue(json, clazz);
         Assert.assertEquals(val, read);

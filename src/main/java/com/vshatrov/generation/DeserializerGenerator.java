@@ -460,7 +460,7 @@ public class DeserializerGenerator {
         currentDeserInfo.getProvided().forEach((typeName) -> {
             resolve.addStatement("javaType = typeFactory.constructType(new $T<$L>(){})",
                         ClassName.get(TypeReference.class), typeName);
-            resolve.addStatement("$L = ctxt.findNonContextualValueDeserializer(javaType)", deserializerName(typeName));
+            resolve.addStatement("$L = ctxt.findRootValueDeserializer(javaType)", deserializerName(typeName));
 
             ParameterizedTypeName deserType = ParameterizedTypeName.get(deserClass, TypeName.get(Object.class));
             FieldSpec deserializer = FieldSpec.builder(deserType, deserializerName(typeName))
