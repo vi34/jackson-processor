@@ -17,7 +17,6 @@ public class Renaming {
 
     private String surname;
 
-    @java.beans.ConstructorProperties({"i1", "a2", "surname"})
     public Renaming(int i1, double a2, String surname) {
         this.i1 = i1;
         this.a2 = a2;

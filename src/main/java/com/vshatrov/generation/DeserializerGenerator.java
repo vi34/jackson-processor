@@ -302,6 +302,10 @@ public class DeserializerGenerator {
         return propVarName;
     }
 
+
+    /**
+     * Special parsing for {@link @OldProperty}
+     */
     private MethodSpec withOldTypeRead(Property property) throws GenerationException {
         MethodSpec.Builder method = MethodSpec
                 .methodBuilder("read_" + property.getName())
@@ -354,6 +358,10 @@ public class DeserializerGenerator {
         }
     }
 
+    /**
+     * Creates instance of property and assigns it to variable.
+     * @return variable name
+     */
     private String instantiate(Property property, MethodSpec.Builder method) {
         String varName = newVarableName();
         method
@@ -375,8 +383,7 @@ public class DeserializerGenerator {
 
         String resultVar = instantiate(property, method);
 
-        method
-                .addStatement("String keyStr = parser.nextFieldName()")
+        method.addStatement("String keyStr = parser.nextFieldName()")
                 .beginControlFlow(" for (; keyStr != null; keyStr = parser.nextFieldName())")
                 .addStatement("$T key = $L", property.getKey().getTName(), property.getKey().parseMethod("keyStr"))
                 .addStatement("JsonToken t = parser.nextToken()")
@@ -387,8 +394,7 @@ public class DeserializerGenerator {
 
         String var = addPropertyReading(method, property.getValue());
 
-        method
-                .addStatement("value = $L", var)
+        method.addStatement("value = $L", var)
                 .endControlFlow()
                 .addStatement("$L.put(key, value)", resultVar)
                 .endControlFlow()
@@ -425,6 +431,9 @@ public class DeserializerGenerator {
         return method.build();
     }
 
+    /**
+     * Use standard Jackson Array deserializer
+     */
     private void addArrayReading(MethodSpec.Builder builder, ArrayProp property) {
         currentDeserInfo.getProvidedArrays().add(property);
 

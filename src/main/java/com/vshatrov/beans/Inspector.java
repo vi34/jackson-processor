@@ -3,6 +3,7 @@ package com.vshatrov.beans;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.vshatrov.GenerationException;
@@ -55,6 +56,7 @@ public class Inspector {
             for (VariableElement field : fields) {
                 processField(definition, field);
             }
+            processClassAnnotations(element, definition);
 
         } catch (Exception e) {
             Utils.warning(e, "Inspection of type element failed " + element.getSimpleName().toString()
@@ -62,6 +64,26 @@ public class Inspector {
         }
         beansCache.put(element.asType().toString(), definition);
         return definition;
+    }
+
+    private void processClassAnnotations(TypeElement element, BeanDescription definition) {
+        JsonPropertyOrder order = element.getAnnotation(JsonPropertyOrder.class);
+        if (order != null) {
+            if (order.alphabetic()) {
+                definition.getProps().sort(Comparator.comparing(Property::getName));
+            } else {
+                definition.getProps().sort(Comparator.comparing(Property::getName, new Comparator<String>() {
+                    @Override
+                    public int compare(String o1, String o2) {
+                        int i1 = Arrays.binarySearch(order.value(), o1);
+                        int i2 = Arrays.binarySearch(order.value(), o2);
+                        if (i1 < 0) i1 = -1;
+                        if (i2 < 0) i2 = -1;
+                        return i1 - i2;
+                    }
+                }));
+            }
+        }
     }
 
     private void checkAnnotationSupport(TypeElement element) throws GenerationException {

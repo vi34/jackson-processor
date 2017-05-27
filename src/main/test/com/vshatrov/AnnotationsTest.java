@@ -8,10 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.vshatrov.prototypes.ObjectTypeChangeDeserializer;
 import com.vshatrov.raw.*;
-import com.vshatrov.raw.annotations.Alternatives;
-import com.vshatrov.raw.annotations.ObjectTypeChange;
-import com.vshatrov.raw.annotations.Renaming;
-import com.vshatrov.raw.annotations.PrimitiveTypeChange;
+import com.vshatrov.raw.annotations.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -86,6 +83,22 @@ public class AnnotationsTest {
         read = mapper.readValue(other2_json, Alternatives.class);
         Assert.assertEquals(alternatives, read);
 
+    }
+
+    @Test
+    public void ordering() throws IOException {
+        Assert.assertTrue(loadSerializer(Order.class, mapper));
+        Order order = new Order();
+        order.setI1(1);
+        order.setI2(2);
+        order.setIgnored(999);
+        order.i3 = 3;
+
+        String s = mapper.writeValueAsString(order);
+        String[] props = s.split(",");
+        for (Integer i = 1; i < props.length + 1; i++) {
+            Assert.assertTrue(props[i - 1].contains(i.toString()));
+        }
     }
 
 

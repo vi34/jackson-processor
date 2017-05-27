@@ -1,6 +1,8 @@
 package com.vshatrov;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.squareup.javapoet.JavaFile;
@@ -217,7 +219,9 @@ public class JacksonProcessor extends AbstractProcessor {
         Set<String> set = new HashSet<>();
         set.add(JsonDeserialize.class.getCanonicalName());
         set.add(JsonSerialize.class.getCanonicalName());
-        set.add(JsonProperty.class.getCanonicalName());
+        set.add(JsonProperty.class.getCanonicalName()); // partial support
+        set.add(JsonIgnore.class.getCanonicalName());
+        set.add(JsonPropertyOrder.class.getCanonicalName());
         return set;
     }
 }

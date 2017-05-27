@@ -12,7 +12,6 @@ import com.vshatrov.raw.Pojo;
 @JsonDeserialize
 public class PrimitiveTypeChange {
 
-    //@JsonFilter("")
     public String name;
 
     @OldProperty("i1")

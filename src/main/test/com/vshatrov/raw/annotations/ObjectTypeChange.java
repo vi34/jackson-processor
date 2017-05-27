@@ -13,7 +13,6 @@ import com.vshatrov.raw.Pojo;
 @JsonDeserialize
 public class ObjectTypeChange {
 
-    //@JsonFilter("")
     public String name;
 
     @OldProperty("pojo")
