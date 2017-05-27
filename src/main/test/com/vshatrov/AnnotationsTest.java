@@ -93,6 +93,7 @@ public class AnnotationsTest {
         order.setI2(2);
         order.setIgnored(999);
         order.i3 = 3;
+        order.i4 = 4;
 
         String s = mapper.writeValueAsString(order);
         String[] props = s.split(",");

@@ -22,7 +22,7 @@ import static com.vshatrov.Compilation.loadSerializer;
 /**
  * @author Viktor Shatrov.
  */
-public class VariousTests {
+public class VariousTest {
 
     private static MappingJsonFactory factory = new MappingJsonFactory();
     private static ObjectMapper mapper = new ObjectMapper(factory);

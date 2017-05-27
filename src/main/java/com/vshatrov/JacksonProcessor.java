@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.*;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
@@ -23,6 +23,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.io.BufferedWriter;
@@ -147,7 +148,9 @@ public class JacksonProcessor extends AbstractProcessor {
                 });
             }
 
-            generateModuleFiles();
+            if (roundEnv.processingOver()) {
+                generateModuleFiles();
+            }
         } catch (Exception e) {
             Utils.warning(e, e.getMessage());
         }
@@ -156,21 +159,45 @@ public class JacksonProcessor extends AbstractProcessor {
     }
 
     public void generateModuleFiles() throws IOException {
-        try(BufferedWriter serializers = Files.newBufferedWriter(Paths.get("GeneratedSerializers.txt"));
-            BufferedWriter deserializers = Files.newBufferedWriter(Paths.get("GeneratedDeserializers.txt")))
-        {
-            for (SerializationInfo ser : processedSerializers.values()) {
-                JavaFile serializerFile = ser.getSerializerFile();
-                serializers.write(serializerFile.packageName + "." +
-                        serializerFile.typeSpec.name + ":" + ser.getTypeName() + "\n");
-            }
-            for (DeserializationInfo deser : processedDeserializers.values()) {
-                JavaFile deserFile = deser.getJavaFile();
-                deserializers.write(deserFile.packageName + "." +
-                        deserFile.typeSpec.name +  ":" + deser.getTypeName() +  "\n");
-            }
+        TypeSpec.Builder module = TypeSpec.classBuilder("Module")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
+        MethodSpec.Builder serializers = MethodSpec.methodBuilder("serializers")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .returns(String[].class)
+                .addCode("$[return new String[]{");
+
+        addGeneratedInfo(serializers, new ArrayList<>(processedSerializers.values()));
+        module.addMethod(serializers.build());
+        MethodSpec.Builder deserializers = MethodSpec.methodBuilder("deserializers")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .returns(String[].class)
+                .addCode("$[return new String[]{");
+
+        addGeneratedInfo(deserializers, new ArrayList<>(processedDeserializers.values()));
+        module.addMethod(deserializers.build());
+
+        JavaFile javaFile = JavaFile.builder("com.vshatrov.generated", module.build())
+                .indent("    ")
+                .build();
+
+        javaFile.writeTo(filer);
+
+    }
+
+    public void addGeneratedInfo(MethodSpec.Builder method, List<GenerationInfo> infos) {
+        GenerationInfo ser = infos.get(0);
+        JavaFile serializerFile = ser.getJavaFile();
+        method.addCode("$S", serializerFile.packageName + "." +
+                serializerFile.typeSpec.name + ":" + ser.getTypeName());
+
+        for (int i = 1; i < infos.size(); i++) {
+            ser = infos.get(i);
+            serializerFile = ser.getJavaFile();
+            method.addCode(", $S", serializerFile.packageName + "." +
+                    serializerFile.typeSpec.name + ":" + ser.getTypeName());
         }
+        method.addCode("};\n$]");
     }
 
 
@@ -202,7 +229,7 @@ public class JacksonProcessor extends AbstractProcessor {
     }
 
     private void attachSerializer(BeanDescription beanDescription, SerializationInfo serializationInfo) {
-       attachClass(beanDescription, serializationInfo.getSerializerFile(), JsonSerialize.class);
+       attachClass(beanDescription, serializationInfo.getJavaFile(), JsonSerialize.class);
     }
 
 

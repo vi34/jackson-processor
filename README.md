@@ -3,25 +3,48 @@ Annotation Processor for Jackson library
 
 JacksonProcessor generates in compile time implementations of _JsonSerializer_ and _JsonDeserializer_ classes.
 
-To generate JsonSerializer, class must be marked with Jackson _@JsonSerialize_ annotation. 
-To generate JsonDeserializer, class must be marked with Jackson _@JsonDeserialize_ annotation.
+### Usage
 
-If _using_ value is absent in annotation, generated classes will be automatically registered as default 
+1. Add dependency
+    **Jar:**
+    Add jackson-processor.jar, javapoet-1.8.0.jar to your classpath. 
+    **Maven:**
+
+         <dependency>
+                <groupId>com.vshatrov</groupId>
+                <artifactId>jackson-processor</artifactId>
+                <version>1.0</version>
+         </dependency>
+2. Enable annotation processing.
+3. Mark classes to generate implementations with _@JsonSerialize_/_@JsonDeserialize_
+
+Thats all! 
+
+Simply use mapper.writeValue/readValue and it will use generated implementations.
+
+
+If _using_ value is absent in annotation _@JsonSerialize_/_@JsonDeserialize_, generated classes automatically registered as default 
 serializer/deserializer. (_using_ property will be set)
 
 To disable automatic registration for particular class simply set _using=JsonSerializer.None.class_
 To disable automatic registration for all classes set processor option _AUTO_REGISTRATION=false_. 
 
 You can register generated classes through module:
-_mapper.registerModule(new APTModule());_
+`mapper.registerModule(new APTModule());`
 
 
-If data class contains unknown classes with unavailable type information for processor, 
+If data class contains classes with unavailable type information for processor, 
 these classes will be resolved using standard Jackson in runtime.  
+E.g. if you mark class with annotation and don't mark classes that used as properties,
+ these properties will be serialized by JsonSerializer provided by Jackson at runtime. 
+
 
 Implementations would not be generated for classes in which processor encounters unimplemented Jackson annotation. 
 
 #### Implemented annotations
+- @JsonIgnore
+- @JsonProperty
+- @JsonPropertyOrder
 
 #### Not implemented
 - Object as key for Map. 

@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Optional module to register all generated serializers/deserializers in Jackson.
@@ -34,7 +33,10 @@ public class APTModule extends SimpleModule {
     @Override
     public void setupModule(SetupContext context) {
         try {
-            Files.lines(Paths.get("GeneratedSerializers.txt")).forEach(l -> {
+            Class<?> module = loadClass("com.vshatrov.generated.Module");
+            Method serializers = module.getMethod("serializers");
+            String[] sers = (String[]) serializers.invoke(null);
+            for (String l : sers) {
                 try {
                     String[] classes = l.split(":");
                     Class<?> ser = loadClass(classes[0]);
@@ -42,9 +44,11 @@ public class APTModule extends SimpleModule {
                 } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                     e.printStackTrace();
                 }
-            });
+            }
 
-            Files.lines(Paths.get("GeneratedDeserializers.txt")).forEach(l -> {
+            Method deserializers = module.getMethod("deserializers");
+            String[] desers = (String[]) deserializers.invoke(null);
+            for (String l : desers) {
                 try {
                     String[] classes = l.split(":");
                     Class<?> deser = loadClass(classes[0]);
@@ -53,8 +57,8 @@ public class APTModule extends SimpleModule {
                 } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                     e.printStackTrace();
                 }
-            });
-        } catch (IOException e) {
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
         super.setupModule(context);

@@ -18,41 +18,27 @@ import java.util.stream.Collectors;
  * Used as internal state during generation in {@link DeserializerGenerator}
  * @author Viktor Shatrov.
  */
-public class DeserializationInfo {
-    private String typeName;
+public class DeserializationInfo extends GenerationInfo {
     private Map<String, DeserializationInfo> props;
 
-
-    private BeanDescription unit;
     private Map<String, Property> primitiveProps;
     private Map<String, MethodSpec> readMethods;
     private Set<TypeName> provided;
     private Set<ArrayProp> providedArrays;
 
-    private JavaFile javaFile;
-
     public DeserializationInfo(BeanDescription unit) {
-        this.typeName = unit.getTypeName();
+        super(unit);
         props = new HashMap<>();
         primitiveProps = unit.getProps().stream()
                 .filter(property -> property.getTName().isPrimitive())
                 .collect(Collectors.toMap(Property::getName, Function.identity()));
-        this.unit = unit;
         readMethods = new HashMap<>();
         provided = new HashSet<>();
         providedArrays = new HashSet<>();
     }
 
-    public String getTypeName() {
-        return this.typeName;
-    }
-
     public Map<String, DeserializationInfo> getProps() {
         return this.props;
-    }
-
-    public BeanDescription getUnit() {
-        return this.unit;
     }
 
     public Map<String, Property> getPrimitiveProps() {
@@ -71,39 +57,4 @@ public class DeserializationInfo {
         return this.providedArrays;
     }
 
-    public JavaFile getJavaFile() {
-        return this.javaFile;
-    }
-
-    public void setTypeName(String typeName) {
-        this.typeName = typeName;
-    }
-
-    public void setProps(Map<String, DeserializationInfo> props) {
-        this.props = props;
-    }
-
-    public void setUnit(BeanDescription unit) {
-        this.unit = unit;
-    }
-
-    public void setPrimitiveProps(Map<String, Property> primitiveProps) {
-        this.primitiveProps = primitiveProps;
-    }
-
-    public void setReadMethods(Map<String, MethodSpec> readMethods) {
-        this.readMethods = readMethods;
-    }
-
-    public void setProvided(Set<TypeName> provided) {
-        this.provided = provided;
-    }
-
-    public void setProvidedArrays(Set<ArrayProp> providedArrays) {
-        this.providedArrays = providedArrays;
-    }
-
-    public void setJavaFile(JavaFile javaFile) {
-        this.javaFile = javaFile;
-    }
 }

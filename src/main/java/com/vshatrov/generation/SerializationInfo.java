@@ -14,58 +14,25 @@ import java.util.Set;
  * Used as internal state during generation in {@link SerializerGenerator}
  * @author Viktor Shatrov.
  */
-public class SerializationInfo {
-    private String typeName;
+public class SerializationInfo extends GenerationInfo {
     private Map<String, String> strings;
-    private BeanDescription unit;
 
-    private JavaFile serializerFile;
     /**
      *  type serializers which will be resolved at runtime
      */
     Set<TypeName> provided;
 
     public SerializationInfo(BeanDescription unit) {
-        this.unit = unit;
-        this.typeName = unit.getTypeName();
+        super(unit);
         strings = new HashMap<>();
         provided = new HashSet<>();
-    }
-
-    public String getTypeName() {
-        return this.typeName;
-    }
-
-    public BeanDescription getUnit() {
-        return unit;
     }
 
     public Map<String, String> getStrings() {
         return this.strings;
     }
 
-    public JavaFile getSerializerFile() {
-        return this.serializerFile;
-    }
-
     public Set<TypeName> getProvided() {
         return this.provided;
-    }
-
-    public void setTypeName(String typeName) {
-        this.typeName = typeName;
-    }
-
-
-    public void setStrings(Map<String, String> strings) {
-        this.strings = strings;
-    }
-
-    public void setSerializerFile(JavaFile serializerFile) {
-        this.serializerFile = serializerFile;
-    }
-
-    public void setProvided(Set<TypeName> provided) {
-        this.provided = provided;
     }
 }

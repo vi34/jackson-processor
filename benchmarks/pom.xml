@@ -59,7 +59,7 @@
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.vshatrov.</groupId>
+            <groupId>com.vshatrov</groupId>
             <artifactId>jackson-processor</artifactId>
             <version>1.0</version>
         </dependency>

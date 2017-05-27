@@ -60,7 +60,7 @@ public class SerializerGenerator {
                 .build();
 
         javaFile.writeTo(filer);
-        currentSerializationInfo.setSerializerFile(javaFile);
+        currentSerializationInfo.setJavaFile(javaFile);
         processed.put(unit.getTypeName(), currentSerializationInfo);
 
         return currentSerializationInfo;

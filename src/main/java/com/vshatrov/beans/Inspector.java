@@ -33,10 +33,12 @@ public class Inspector {
     private static PropertyFabric fabric = new PropertyFabric();
     private List<VariableElement> fields;
     private List<Symbol.MethodSymbol> methods;
+    private AnnotationProcessor annotationProcessor;
 
     public Inspector() {
         fields = new ArrayList<>();
         methods = new ArrayList<>();
+        annotationProcessor = new AnnotationProcessor();
     }
 
     public BeanDescription inspect(TypeElement element) {
@@ -56,7 +58,7 @@ public class Inspector {
             for (VariableElement field : fields) {
                 processField(definition, field);
             }
-            processClassAnnotations(element, definition);
+            annotationProcessor.processClassAnnotations(element, definition);
 
         } catch (Exception e) {
             Utils.warning(e, "Inspection of type element failed " + element.getSimpleName().toString()
@@ -66,26 +68,11 @@ public class Inspector {
         return definition;
     }
 
-    private void processClassAnnotations(TypeElement element, BeanDescription definition) {
-        JsonPropertyOrder order = element.getAnnotation(JsonPropertyOrder.class);
-        if (order != null) {
-            if (order.alphabetic()) {
-                definition.getProps().sort(Comparator.comparing(Property::getName));
-            } else {
-                definition.getProps().sort(Comparator.comparing(Property::getName, new Comparator<String>() {
-                    @Override
-                    public int compare(String o1, String o2) {
-                        int i1 = Arrays.binarySearch(order.value(), o1);
-                        int i2 = Arrays.binarySearch(order.value(), o2);
-                        if (i1 < 0) i1 = -1;
-                        if (i2 < 0) i2 = -1;
-                        return i1 - i2;
-                    }
-                }));
-            }
-        }
-    }
 
+    /**
+     * Method checks that class not annotated with any unimplemented Jackson annotations.
+     * @throws GenerationException to prevent generating wrong implementation for this class.
+     */
     private void checkAnnotationSupport(TypeElement element) throws GenerationException {
         List<? extends AnnotationMirror> annotations = elementUtils.getAllAnnotationMirrors(element);
         ArrayList<AnnotationMirror> wholeTreeAnnotations = new ArrayList<>();
@@ -130,31 +117,19 @@ public class Inspector {
 
         if (fieldFilter(member, getter, setter)) {
             property = fabric.construct(member);
-            definition.getProps().add(property);
+
             if (getter != null && setter != null) {
                 property.setGetter(getter.getSimpleName().toString());
                 property.setSetter(setter.getSimpleName().toString());
             }
-            processFieldAnnotations(member, property);
+            property = annotationProcessor.processFieldAnnotations(member, property);
+            if (property != null) {
+                definition.getProps().add(property);
+            }
         }
     }
 
-    private void processFieldAnnotations(VariableElement member, Property property) {
-        JsonProperty jsonProperty = member.getAnnotation(JsonProperty.class);
-        if (jsonProperty != null) {
-            property.setName(jsonProperty.value());
-        }
 
-        AlternativeNames alternativeNames = member.getAnnotation(AlternativeNames.class);
-        if (alternativeNames != null) {
-            property.setAlternativeNames(Arrays.asList(alternativeNames.value()));
-        }
-
-        OldProperty oldProperty = member.getAnnotation(OldProperty.class);
-        if (oldProperty != null) {
-            property.setOldProperty(oldProperty.value());
-        }
-    }
 
 
     /**
@@ -162,11 +137,10 @@ public class Inspector {
      */
     private boolean fieldFilter(VariableElement member, Symbol.MethodSymbol getter, Symbol.MethodSymbol setter) {
         return !(member.getModifiers().contains(Modifier.TRANSIENT) || member.getModifiers().contains(Modifier.STATIC))
-                && (member.getAnnotation(JsonIgnore.class) == null || !member.getAnnotation(JsonIgnore.class).value())
                 && (!member.getModifiers().contains(Modifier.PRIVATE) || getter != null && setter != null);
     }
 
-    private Symbol.MethodSymbol findGetter(VariableElement field) {
+    public Symbol.MethodSymbol findGetter(VariableElement field) {
         Symbol.MethodSymbol getter = null;
         String name = field.getSimpleName().toString().toLowerCase();
         for (Symbol.MethodSymbol method : methods) {
@@ -186,7 +160,7 @@ public class Inspector {
         return getter;
     }
 
-    private Symbol.MethodSymbol findSetter(VariableElement field) {
+    public Symbol.MethodSymbol findSetter(VariableElement field) {
         Symbol.MethodSymbol setter = null;
         String name = field.getSimpleName().toString().toLowerCase();
         for (Symbol.MethodSymbol method : methods) {
