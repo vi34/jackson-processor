@@ -1,11 +1,11 @@
-package com.vshatrov.utils;
+package com.vshatrov.processor.utils;
 
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Names;
-import com.vshatrov.JacksonProcessor;
+import com.vshatrov.processor.JacksonProcessor;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;

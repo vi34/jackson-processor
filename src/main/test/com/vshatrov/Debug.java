@@ -31,13 +31,14 @@ public class Debug {
         factory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         ObjectMapper mapper = new ObjectMapper(factory);
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.WRAPPER_OBJECT);
+        //mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.WRAPPER_OBJECT);
         SimpleModule module = new SimpleModule();
         module.addSerializer(Pojo.class, new PojoTypedSerializer());
         mapper.registerModule(module);
         //Compilation.loadDeserializer(Pojo.class, mapper);
         //Compilation.loadDeserializer(PolyPojo.class, mapper);
         //Compilation.loadDeserializer(Complex.class, mapper);
+
 
         mapper.writeValue(writer, Complex.make());
 

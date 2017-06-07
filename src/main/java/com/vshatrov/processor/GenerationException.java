@@ -1,4 +1,4 @@
-package com.vshatrov;
+package com.vshatrov.processor;
 
 /**
  * @author Viktor Shatrov.

@@ -20,7 +20,7 @@ public class RunBenchmarks {
                 .warmupIterations(4)
                 .timeUnit(TimeUnit.NANOSECONDS)
                 .mode(Mode.AverageTime)
-                .measurementIterations(8)
+                .measurementIterations(9)
                 .output("profile.txt")
                 .forks(3)
                 .build();

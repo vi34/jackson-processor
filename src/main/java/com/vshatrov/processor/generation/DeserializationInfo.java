@@ -1,11 +1,10 @@
-package com.vshatrov.generation;
+package com.vshatrov.processor.generation;
 
-import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
-import com.vshatrov.beans.BeanDescription;
-import com.vshatrov.beans.properties.ArrayProp;
-import com.vshatrov.beans.properties.Property;
+import com.vshatrov.processor.type.BeanDescription;
+import com.vshatrov.processor.type.properties.ArrayProperty;
+import com.vshatrov.processor.type.properties.Property;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +23,7 @@ public class DeserializationInfo extends GenerationInfo {
     private Map<String, Property> primitiveProps;
     private Map<String, MethodSpec> readMethods;
     private Set<TypeName> provided;
-    private Set<ArrayProp> providedArrays;
+    private Set<ArrayProperty> providedArrays;
 
     public DeserializationInfo(BeanDescription unit) {
         super(unit);
@@ -53,7 +52,7 @@ public class DeserializationInfo extends GenerationInfo {
         return this.provided;
     }
 
-    public Set<ArrayProp> getProvidedArrays() {
+    public Set<ArrayProperty> getProvidedArrays() {
         return this.providedArrays;
     }
 

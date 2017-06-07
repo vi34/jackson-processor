@@ -41,7 +41,7 @@ public class MediaItemDeserializer extends JsonDeserializer<MediaItem> {
     public MediaItem deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         MediaItem mc = new MediaItem();
         // first fast version when field-order is as expected
-        if (parser.nextFieldName(FIELD_MEDIA)) {
+        if (parser.nextFieldName(FIELD_MEDIA) && false) {
             mc.media = readMedia(parser);
             if (parser.nextFieldName(FIELD_IMAGES)) {
                 mc.images = readImages(parser);
@@ -87,7 +87,7 @@ public class MediaItemDeserializer extends JsonDeserializer<MediaItem> {
         boolean haveSize = false;
 
         // As with above, first fast path
-        if (parser.nextFieldName(FIELD_URI)) {
+        if (parser.nextFieldName(FIELD_URI) && false) {
             media.uri = parser.nextTextValue();
             if (parser.nextFieldName(FIELD_TITLE)) {
                 media.title = parser.nextTextValue();
@@ -225,7 +225,7 @@ public class MediaItemDeserializer extends JsonDeserializer<MediaItem> {
         boolean haveWidth = false;
         boolean haveHeight = false;
         Image image = new Image();
-        if (parser.nextFieldName(FIELD_URI)) {
+        if (parser.nextFieldName(FIELD_URI) && false) {
             image.uri = parser.nextTextValue();
             if (parser.nextFieldName(FIELD_TITLE)) {
                 image.title = parser.nextTextValue();

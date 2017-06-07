@@ -1,4 +1,4 @@
-package com.vshatrov.annotations;
+package com.vshatrov.processor.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

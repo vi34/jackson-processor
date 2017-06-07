@@ -2,7 +2,7 @@ package com.vshatrov.raw.annotations;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.vshatrov.annotations.AlternativeNames;
+import com.vshatrov.processor.annotations.AlternativeNames;
 import com.vshatrov.raw.Pojo;
 
 /**

@@ -1,4 +1,4 @@
-package com.vshatrov.schema;
+package com.vshatrov.processor.schema;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

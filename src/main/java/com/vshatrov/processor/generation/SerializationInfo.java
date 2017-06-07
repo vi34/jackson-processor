@@ -1,9 +1,7 @@
-package com.vshatrov.generation;
+package com.vshatrov.processor.generation;
 
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
-import com.vshatrov.beans.BeanDescription;
+import com.vshatrov.processor.type.BeanDescription;
 
 import java.util.HashMap;
 import java.util.HashSet;

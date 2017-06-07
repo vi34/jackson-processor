@@ -1,4 +1,4 @@
-package com.vshatrov;
+package com.vshatrov.processor;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,10 +11,10 @@ import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Names;
-import com.vshatrov.beans.BeanDescription;
-import com.vshatrov.beans.Inspector;
-import com.vshatrov.generation.*;
-import com.vshatrov.utils.Utils;
+import com.vshatrov.processor.type.BeanDescription;
+import com.vshatrov.processor.type.Inspector;
+import com.vshatrov.processor.generation.*;
+import com.vshatrov.processor.utils.Utils;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -23,23 +23,18 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static com.vshatrov.utils.Utils.*;
+import static com.vshatrov.processor.utils.Utils.*;
 
 /**
  * @author Viktor Shatrov.
  */
 @SupportedAnnotationTypes({
-        "com.vshatrov.annotations.*",
+        "com.vshatrov.processor.annotations.*",
         JacksonProcessor.JSON_SERIALIZE,
         JacksonProcessor.JSON_DESERIALIZE
 })
@@ -149,7 +144,8 @@ public class JacksonProcessor extends AbstractProcessor {
             }
 
             if (roundEnv.processingOver()) {
-                generateModuleFiles();
+                ModuleInfoGenerator moduleInfoGenerator = new ModuleInfoGenerator(processedDeserializers, processedSerializers);
+                moduleInfoGenerator.generateModuleInfo();
             }
         } catch (Exception e) {
             Utils.warning(e, e.getMessage());
@@ -158,47 +154,6 @@ public class JacksonProcessor extends AbstractProcessor {
         return true;
     }
 
-    public void generateModuleFiles() throws IOException {
-        TypeSpec.Builder module = TypeSpec.classBuilder("Module")
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
-
-        MethodSpec.Builder serializers = MethodSpec.methodBuilder("serializers")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .returns(String[].class)
-                .addCode("$[return new String[]{");
-
-        addGeneratedInfo(serializers, new ArrayList<>(processedSerializers.values()));
-        module.addMethod(serializers.build());
-        MethodSpec.Builder deserializers = MethodSpec.methodBuilder("deserializers")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .returns(String[].class)
-                .addCode("$[return new String[]{");
-
-        addGeneratedInfo(deserializers, new ArrayList<>(processedDeserializers.values()));
-        module.addMethod(deserializers.build());
-
-        JavaFile javaFile = JavaFile.builder("com.vshatrov.generated", module.build())
-                .indent("    ")
-                .build();
-
-        javaFile.writeTo(filer);
-
-    }
-
-    public void addGeneratedInfo(MethodSpec.Builder method, List<GenerationInfo> infos) {
-        GenerationInfo ser = infos.get(0);
-        JavaFile serializerFile = ser.getJavaFile();
-        method.addCode("$S", serializerFile.packageName + "." +
-                serializerFile.typeSpec.name + ":" + ser.getTypeName());
-
-        for (int i = 1; i < infos.size(); i++) {
-            ser = infos.get(i);
-            serializerFile = ser.getJavaFile();
-            method.addCode(", $S", serializerFile.packageName + "." +
-                    serializerFile.typeSpec.name + ":" + ser.getTypeName());
-        }
-        method.addCode("};\n$]");
-    }
 
 
     private void attachClass(BeanDescription beanDescription, JavaFile javaFile, Class<?> annotationName) {

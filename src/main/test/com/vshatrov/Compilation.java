@@ -5,8 +5,9 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.sun.tools.javac.util.List;
-import com.vshatrov.generation.DeserializerGenerator;
-import com.vshatrov.generation.SerializerGenerator;
+import com.vshatrov.processor.JacksonProcessor;
+import com.vshatrov.processor.generation.DeserializerGenerator;
+import com.vshatrov.processor.generation.SerializerGenerator;
 
 import javax.tools.*;
 import java.io.File;

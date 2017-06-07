@@ -1,7 +1,7 @@
-package com.vshatrov.generation;
+package com.vshatrov.processor.generation;
 
 import com.squareup.javapoet.JavaFile;
-import com.vshatrov.beans.BeanDescription;
+import com.vshatrov.processor.type.BeanDescription;
 
 /**
  * @author Viktor Shatrov.

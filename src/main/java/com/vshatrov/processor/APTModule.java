@@ -1,4 +1,4 @@
-package com.vshatrov;
+package com.vshatrov.processor;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
  */
 public class APTModule extends SimpleModule {
 
+    public static final String MODULE_INFO = "com.vshatrov.generated.Module";
     private ClassLoader classLoader;
 
     public void setClassLoader(ClassLoader classLoader) {
@@ -33,7 +34,7 @@ public class APTModule extends SimpleModule {
     @Override
     public void setupModule(SetupContext context) {
         try {
-            Class<?> module = loadClass("com.vshatrov.generated.Module");
+            Class<?> module = loadClass(MODULE_INFO);
             Method serializers = module.getMethod("serializers");
             String[] sers = (String[]) serializers.invoke(null);
             for (String l : sers) {

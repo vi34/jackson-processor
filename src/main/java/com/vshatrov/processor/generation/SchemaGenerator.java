@@ -1,18 +1,18 @@
-package com.vshatrov.generation;
+package com.vshatrov.processor.generation;
 
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.vshatrov.beans.*;
-import com.vshatrov.beans.properties.ContainerProp;
-import com.vshatrov.beans.properties.EnumProp;
-import com.vshatrov.beans.properties.MapProp;
-import com.vshatrov.beans.properties.Property;
-import com.vshatrov.schema.ArraySchema;
-import com.vshatrov.schema.EnumSchema;
-import com.vshatrov.schema.JsonSchema;
-import com.vshatrov.schema.JsonType;
-import com.vshatrov.utils.Utils;
+import com.vshatrov.processor.type.*;
+import com.vshatrov.processor.type.properties.ContainerProperty;
+import com.vshatrov.processor.type.properties.EnumProperty;
+import com.vshatrov.processor.type.properties.MapProperty;
+import com.vshatrov.processor.type.properties.Property;
+import com.vshatrov.processor.schema.ArraySchema;
+import com.vshatrov.processor.schema.EnumSchema;
+import com.vshatrov.processor.schema.JsonSchema;
+import com.vshatrov.processor.schema.JsonType;
+import com.vshatrov.processor.utils.Utils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -50,17 +50,17 @@ public class SchemaGenerator {
         if (property.isSimple()) {
             schema = new JsonSchema();
             schema.setType(property.getJsonType());
-        } else if (property instanceof ContainerProp) {
+        } else if (property instanceof ContainerProperty) {
             schema = new ArraySchema();
             schema.setType(JsonType.ARRAY);
-            JsonSchema refSchema = createPropSchema(((ContainerProp) property).getElement());
+            JsonSchema refSchema = createPropSchema(((ContainerProperty) property).getElement());
             ((ArraySchema)schema).setItems(refSchema);
-        } else if (property instanceof EnumProp) {
+        } else if (property instanceof EnumProperty) {
             schema = new EnumSchema();
-        } else if (property instanceof MapProp) {
+        } else if (property instanceof MapProperty) {
             schema = new JsonSchema();
             schema.setType(JsonType.OBJECT);
-            schema.setAdditionalProperties(createPropSchema(((MapProp) property).getValue()));
+            schema.setAdditionalProperties(createPropSchema(((MapProperty) property).getValue()));
         } else {
             schema = new JsonSchema();
             schema.set$ref(schemaFile(property.getTypeName()));

@@ -1,4 +1,4 @@
-package com.vshatrov.generation;
+package com.vshatrov.processor.generation;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -12,18 +12,18 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.type.ArrayType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.squareup.javapoet.*;
-import com.vshatrov.GenerationException;
-import com.vshatrov.beans.BeanDescription;
-import com.vshatrov.beans.Inspector;
-import com.vshatrov.beans.properties.*;
-import com.vshatrov.utils.Utils;
+import com.vshatrov.processor.GenerationException;
+import com.vshatrov.processor.type.BeanDescription;
+import com.vshatrov.processor.type.Inspector;
+import com.vshatrov.processor.type.properties.*;
+import com.vshatrov.processor.utils.Utils;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.*;
 
-import static com.vshatrov.utils.Utils.filer;
-import static com.vshatrov.utils.Utils.newVarableName;
+import static com.vshatrov.processor.utils.Utils.filer;
+import static com.vshatrov.processor.utils.Utils.newVarableName;
 
 /**
  * Generates JsonDeserializer implementation source code, based on given {@link BeanDescription}
@@ -277,16 +277,16 @@ public class DeserializerGenerator {
 
         readMethod.addCode("$1T $2L = parser.currentToken() == JsonToken.VALUE_NULL ? null : ", property.getTName(), propVarName);
 
-        if (property instanceof EnumProp) {
+        if (property instanceof EnumProperty) {
             readMethod.addStatement("$1T.valueOf($2L)", property.getTName(), property.parseMethod("parser"));
         } else if (property.isSimple()) {
             readMethod.addStatement("$L", property.parseMethod("parser"));
-        } else if (property instanceof ContainerProp) {
-            MethodSpec arrayRead = containerRead((ContainerProp) property);
+        } else if (property instanceof ContainerProperty) {
+            MethodSpec arrayRead = containerRead((ContainerProperty) property);
             readMethod.addStatement("$N(parser, ctxt)", arrayRead);
             currentDeserInfo.getReadMethods().put(arrayRead.name, arrayRead);
-        } else if (property instanceof MapProp) {
-            MethodSpec mapRead = mapRead((MapProp) property);
+        } else if (property instanceof MapProperty) {
+            MethodSpec mapRead = mapRead((MapProperty) property);
             readMethod.addStatement("$N(parser, ctxt)", mapRead);
             currentDeserInfo.getReadMethods().put(mapRead.name, mapRead);
         } else if (property.getOldProperty() != null) {
@@ -370,7 +370,7 @@ public class DeserializerGenerator {
         return varName;
     }
 
-    private MethodSpec mapRead(MapProp property) throws GenerationException {
+    private MethodSpec mapRead(MapProperty property) throws GenerationException {
         MethodSpec.Builder method = MethodSpec
                 .methodBuilder("read_map_" + property.getName())
                 .addModifiers(Modifier.PRIVATE)
@@ -403,7 +403,7 @@ public class DeserializerGenerator {
         return method.build();
     }
 
-    private MethodSpec containerRead(ContainerProp property) throws GenerationException {
+    private MethodSpec containerRead(ContainerProperty property) throws GenerationException {
         MethodSpec.Builder method = MethodSpec
                 .methodBuilder("read_container_" + property.getName())
                 .addModifiers(Modifier.PRIVATE)
@@ -415,8 +415,8 @@ public class DeserializerGenerator {
                 .addStatement("reportIllegal(parser, JsonToken.START_ARRAY)")
                 .endControlFlow();
 
-        if (property instanceof ArrayProp) {
-            addArrayReading(method, (ArrayProp) property);
+        if (property instanceof ArrayProperty) {
+            addArrayReading(method, (ArrayProperty) property);
         } else {
             String containerVar = instantiate(property, method);
             method.beginControlFlow("while (parser.nextToken() != JsonToken.END_ARRAY)");
@@ -434,7 +434,7 @@ public class DeserializerGenerator {
     /**
      * Use standard Jackson Array deserializer
      */
-    private void addArrayReading(MethodSpec.Builder builder, ArrayProp property) {
+    private void addArrayReading(MethodSpec.Builder builder, ArrayProperty property) {
         currentDeserInfo.getProvidedArrays().add(property);
 
         builder.addStatement("$1T arr = ($1T) $2L.deserialize(parser, ctxt)",
@@ -511,7 +511,7 @@ public class DeserializerGenerator {
 
                 resolve.addStatement("$L = new $T(arrayType, $L, null)",
                         deserializerName(arrayProp.getTName()), TypeName.get(ObjectArrayDeserializer.class),
-                        arrayProp.getElement() instanceof EnumProp
+                        arrayProp.getElement() instanceof EnumProperty
                                 ? typeSpec
                                 : deserializerName(arrayProp.getElement().getTName()));
             }

@@ -1,4 +1,4 @@
-package com.vshatrov.generation;
+package com.vshatrov.processor.generation;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.io.SerializedString;
@@ -12,20 +12,18 @@ import com.fasterxml.jackson.databind.ser.ResolvableSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.squareup.javapoet.*;
-import com.vshatrov.GenerationException;
-import com.vshatrov.beans.BeanDescription;
-import com.vshatrov.beans.properties.ContainerProp;
-import com.vshatrov.beans.properties.MapProp;
-import com.vshatrov.beans.properties.Property;
-import com.vshatrov.utils.Utils;
+import com.vshatrov.processor.GenerationException;
+import com.vshatrov.processor.type.BeanDescription;
+import com.vshatrov.processor.type.properties.ContainerProperty;
+import com.vshatrov.processor.type.properties.MapProperty;
+import com.vshatrov.processor.type.properties.Property;
+import com.vshatrov.processor.utils.Utils;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
 import java.util.Map;
 
-import static com.vshatrov.utils.Utils.*;
+import static com.vshatrov.processor.utils.Utils.*;
 
 /**
  * Generates JsonSerializer implementation source code, based on given {@link BeanDescription}
@@ -188,10 +186,10 @@ public class SerializerGenerator {
         String propVar = property.getName() + "_var";
         method.addStatement("$T $L = $L", property.getTName(), propVar, property.getAccessor(objectVarName));
 
-        if (property instanceof ContainerProp) {
-            writeContainer((ContainerProp)property, method, propVar);
-        } else if (property instanceof MapProp) {
-            writeMap((MapProp) property, method, propVar);
+        if (property instanceof ContainerProperty) {
+            writeContainer((ContainerProperty)property, method, propVar);
+        } else if (property instanceof MapProperty) {
+            writeMap((MapProperty) property, method, propVar);
         } else if (property.isSimple()) {
             method.addStatement("gen.$L", property.writeMethod(objectVarName));
         } else {
@@ -211,8 +209,8 @@ public class SerializerGenerator {
         currentSerializationInfo.getStrings().put(constName, name);
     }
 
-    private void writeMap(MapProp property, MethodSpec.Builder method, String propVarName) throws GenerationException, IOException {
-        MapProp.KeyProp key = property.getKey();
+    private void writeMap(MapProperty property, MethodSpec.Builder method, String propVarName) throws GenerationException, IOException {
+        MapProperty.KeyProp key = property.getKey();
         Property value = property.getValue();
         String var = property.getName() + "_entry";
         method
@@ -232,7 +230,7 @@ public class SerializerGenerator {
                 .endControlFlow();
     }
 
-    private void writeContainer(ContainerProp property, MethodSpec.Builder method, String propVarName) throws IOException, GenerationException {
+    private void writeContainer(ContainerProperty property, MethodSpec.Builder method, String propVarName) throws IOException, GenerationException {
         Property element = property.getElement();
         String elemVar = ""+element.getName().toLowerCase().charAt(0);
         method
